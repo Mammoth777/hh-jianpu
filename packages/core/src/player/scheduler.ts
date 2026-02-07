@@ -91,12 +91,23 @@ export function scheduleNotes(score: Score): ScheduledNote[] {
       const beats = durationInBeats(note);
       const durationSec = beats * secondsPerBeat;
 
-      // 延长线：将时值合并到前一个有效音符，不产生新事件
+      // 延长线：将时值合并到前一个有效音符的发音时长，
+      // 但仍产生一个静默事件用于 UI 高亮
       if (note.type === 'tie') {
-        const lastScheduled = scheduled.length > 0 ? scheduled[scheduled.length - 1] : null;
-        if (lastScheduled && lastScheduled.frequency !== null) {
-          lastScheduled.duration += durationSec;
+        const lastWithFreq = [...scheduled].reverse().find(s => s.frequency !== null);
+        if (lastWithFreq) {
+          lastWithFreq.duration += durationSec;
         }
+
+        // 产生静默事件（frequency=null），让 UI 在此时间点高亮延长线符号
+        scheduled.push({
+          index: globalIndex,
+          startTime: currentTime,
+          duration: durationSec,
+          frequency: null,
+          note,
+        });
+
         currentTime += durationSec;
         globalIndex++;
         continue;

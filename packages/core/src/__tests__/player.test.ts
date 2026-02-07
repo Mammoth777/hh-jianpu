@@ -76,19 +76,25 @@ describe('Player', () => {
 
       const scheduled = scheduleNotes(scoreWithTie);
 
-      // tie 应该被合并到前一个音符，不产生独立事件
-      // 1 - - 5 → 2 个事件（do 3拍 + sol 1拍）
-      expect(scheduled).toHaveLength(2);
+      // 1 - - 5 → 4 个事件（do + tie + tie + sol）
+      // tie 产生静默事件（frequency=null）用于 UI 高亮，但音频时长合并到前一个音符
+      expect(scheduled).toHaveLength(4);
 
       // 第一个音符 (do)：时值 = 1拍 + 1拍(tie) + 1拍(tie) = 3拍 = 1.5秒
       expect(scheduled[0].frequency).not.toBeNull();
       expect(scheduled[0].duration).toBeCloseTo(1.5);
       expect(scheduled[0].startTime).toBe(0);
 
+      // tie 事件：静默（frequency=null），用于 UI 高亮
+      expect(scheduled[1].frequency).toBeNull();
+      expect(scheduled[1].startTime).toBeCloseTo(0.5);
+      expect(scheduled[2].frequency).toBeNull();
+      expect(scheduled[2].startTime).toBeCloseTo(1.0);
+
       // 第二个音符 (sol)：startTime = 1.5秒
-      expect(scheduled[1].frequency).not.toBeNull();
-      expect(scheduled[1].startTime).toBeCloseTo(1.5);
-      expect(scheduled[1].duration).toBeCloseTo(0.5);
+      expect(scheduled[3].frequency).not.toBeNull();
+      expect(scheduled[3].startTime).toBeCloseTo(1.5);
+      expect(scheduled[3].duration).toBeCloseTo(0.5);
     });
 
     it('should not merge tie at the beginning (no previous note)', () => {
@@ -111,11 +117,13 @@ describe('Player', () => {
 
       const scheduled = scheduleNotes(scoreStartsWithTie);
 
-      // tie 在开头没有前一个音符可合并，应被跳过
-      // 但时间轴仍然前进
-      expect(scheduled).toHaveLength(1);
-      expect(scheduled[0].startTime).toBeCloseTo(0.5); // tie 占了 0.5s
-      expect(scheduled[0].frequency).not.toBeNull();
+      // tie 在开头没有前一个音符可合并，产生静默事件
+      // 时间轴仍然前进
+      expect(scheduled).toHaveLength(2); // tie(静默) + note
+      expect(scheduled[0].frequency).toBeNull(); // tie 无音频
+      expect(scheduled[0].startTime).toBe(0);
+      expect(scheduled[1].startTime).toBeCloseTo(0.5); // tie 占了 0.5s
+      expect(scheduled[1].frequency).not.toBeNull();
     });
 
     it('should not merge tie after a rest', () => {
@@ -139,11 +147,13 @@ describe('Player', () => {
 
       const scheduled = scheduleNotes(scoreRestThenTie);
 
-      // rest (frequency=null) 后面的 tie 不应合并
-      expect(scheduled).toHaveLength(2); // rest + note
+      // rest (frequency=null) 后面的 tie 不应合并音频时长
+      expect(scheduled).toHaveLength(3); // rest + tie(静默) + note
       expect(scheduled[0].frequency).toBeNull(); // rest
       expect(scheduled[0].duration).toBeCloseTo(0.5); // rest 不被延长
-      expect(scheduled[1].startTime).toBeCloseTo(1.0); // rest + tie 各占 0.5s
+      expect(scheduled[1].frequency).toBeNull(); // tie（静默事件）
+      expect(scheduled[1].startTime).toBeCloseTo(0.5);
+      expect(scheduled[2].startTime).toBeCloseTo(1.0); // rest + tie 各占 0.5s
     });
   });
 
