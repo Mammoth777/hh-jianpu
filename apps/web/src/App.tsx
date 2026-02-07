@@ -1,9 +1,11 @@
-import React, { useCallback } from 'react';
+import React, { useCallback, useState } from 'react';
 import { useStore } from './store/useStore';
 import AppLayout from './components/Layout/AppLayout';
 import Editor from './components/Editor/Editor';
 import ScoreView from './components/ScoreView/ScoreView';
 import PlayerBar from './components/Player/PlayerBar';
+import { HelpModal } from './components/HelpModal';
+import { ResizablePanels } from './components/ResizablePanels';
 
 const App: React.FC = () => {
   const {
@@ -24,28 +26,35 @@ const App: React.FC = () => {
     loadExample,
   } = useStore();
 
+  const [isHelpOpen, setIsHelpOpen] = useState(false);
+
   const handleModeToggle = useCallback(() => {
     setMode(mode === 'edit' ? 'play' : 'edit');
   }, [mode, setMode]);
 
+  const handleHelpClick = useCallback(() => {
+    setIsHelpOpen(true);
+  }, []);
+
+  const handleHelpClose = useCallback(() => {
+    setIsHelpOpen(false);
+  }, []);
+
   return (
+    <>
     <AppLayout
       mode={mode}
       title={score?.metadata.title}
       onModeToggle={handleModeToggle}
       onLoadExample={loadExample}
+      onHelpClick={handleHelpClick}
     >
       {mode === 'edit' ? (
         /* ===== 编辑模式 ===== */
-        <div className="h-full flex flex-col md:flex-row">
-          {/* 左侧：编辑器 */}
-          <div className="flex-1 border-r border-barline min-h-0">
-            <Editor value={source} onChange={setSource} />
-          </div>
-
-          {/* 右侧：预览 */}
-          <div className="flex-1 overflow-auto p-4 min-h-0">
-            {score ? (
+        <ResizablePanels
+          left={<Editor value={source} onChange={setSource} />}
+          right={
+            score ? (
               <ScoreView
                 score={score}
                 currentNoteIndex={-1}
@@ -64,9 +73,12 @@ const App: React.FC = () => {
                   <p>输入简谱文本以预览</p>
                 )}
               </div>
-            )}
-          </div>
-        </div>
+            )
+          }
+          minLeftWidth={300}
+          minRightWidth={300}
+          defaultLeftWidth={50}
+        />
       ) : (
         /* ===== 演奏模式 ===== */
         <div className="h-full flex flex-col">
@@ -96,6 +108,10 @@ const App: React.FC = () => {
         </div>
       )}
     </AppLayout>
+
+    {/* 帮助模态框 */}
+    <HelpModal isOpen={isHelpOpen} onClose={handleHelpClose} />
+    </>
   );
 };
 

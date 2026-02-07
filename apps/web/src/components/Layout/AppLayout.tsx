@@ -7,6 +7,7 @@ interface AppLayoutProps {
   title?: string;
   onModeToggle: () => void;
   onLoadExample: (key: string) => void;
+  onHelpClick: () => void;
   children: React.ReactNode;
 }
 
@@ -15,6 +16,7 @@ const AppLayout: React.FC<AppLayoutProps> = ({
   title,
   onModeToggle,
   onLoadExample,
+  onHelpClick,
   children,
 }) => {
   return (
@@ -46,6 +48,16 @@ const AppLayout: React.FC<AppLayoutProps> = ({
               ))}
             </div>
           )}
+
+          {/* 帮助按钮 */}
+          <button
+            onClick={onHelpClick}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-barline hover:bg-blue-50 transition-colors text-blue-600"
+            title="查看编写说明"
+          >
+            <span>❓</span>
+            <span className="hidden sm:inline">帮助</span>
+          </button>
 
           {/* 模式切换 */}
           <button
