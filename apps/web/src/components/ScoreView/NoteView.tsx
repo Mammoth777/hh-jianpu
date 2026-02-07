@@ -1,0 +1,138 @@
+import React from 'react';
+import type { NoteElement } from '@as-nmn/core';
+
+interface NoteViewProps {
+  note: NoteElement;
+  x: number;
+  y: number;
+  index: number;
+  isActive: boolean;
+  isPlayed: boolean;
+  onClick?: (index: number) => void;
+}
+
+/**
+ * 将音符数据渲染为 SVG 元素
+ */
+function getNoteDisplay(note: NoteElement): string {
+  switch (note.type) {
+    case 'note':
+      return `${note.accidental === 'sharp' ? '#' : note.accidental === 'flat' ? 'b' : ''}${note.pitch}`;
+    case 'rest':
+      return '0';
+    case 'tie':
+      return '—';
+    default:
+      return '?';
+  }
+}
+
+const NoteView: React.FC<NoteViewProps> = ({ note, x, y, index, isActive, isPlayed, onClick }) => {
+  const display = getNoteDisplay(note);
+
+  // 确定样式类
+  let fillColor = '#1C1917'; // ink
+  if (isActive) fillColor = '#2563EB'; // highlight
+  else if (isPlayed) fillColor = '#94A3B8'; // played
+
+  return (
+    <g
+      className="score-note"
+      onClick={() => onClick?.(index)}
+      style={{ cursor: 'pointer' }}
+    >
+      {/* 高亮背景 */}
+      {isActive && (
+        <rect
+          x={x - 14}
+          y={y - 16}
+          width={28}
+          height={28}
+          rx={4}
+          fill="#2563EB"
+          fillOpacity={0.1}
+        />
+      )}
+
+      {/* 音符数字 */}
+      <text
+        x={x}
+        y={y}
+        textAnchor="middle"
+        dominantBaseline="central"
+        fontFamily="'JetBrains Mono', monospace"
+        fontSize={18}
+        fontWeight={isActive ? 600 : 400}
+        fill={fillColor}
+      >
+        {display}
+      </text>
+
+      {/* 高八度点 */}
+      {note.type === 'note' && note.octave > 0 && (
+        <>
+          {Array.from({ length: note.octave }).map((_, i) => (
+            <circle
+              key={`up-${i}`}
+              cx={x}
+              cy={y - 18 - i * 6}
+              r={2}
+              fill={fillColor}
+            />
+          ))}
+        </>
+      )}
+
+      {/* 低八度点 */}
+      {note.type === 'note' && note.octave < 0 && (
+        <>
+          {Array.from({ length: Math.abs(note.octave) }).map((_, i) => (
+            <circle
+              key={`down-${i}`}
+              cx={x}
+              cy={y + 16 + i * 6}
+              r={2}
+              fill={fillColor}
+            />
+          ))}
+        </>
+      )}
+
+      {/* 减时线（八分音符及更短） */}
+      {note.duration.base >= 8 && (
+        <>
+          <line
+            x1={x - 8}
+            y1={y + 12}
+            x2={x + 8}
+            y2={y + 12}
+            stroke={fillColor}
+            strokeWidth={1.5}
+          />
+          {note.duration.base >= 16 && (
+            <line
+              x1={x - 8}
+              y1={y + 16}
+              x2={x + 8}
+              y2={y + 16}
+              stroke={fillColor}
+              strokeWidth={1.5}
+            />
+          )}
+        </>
+      )}
+
+      {/* 附点 */}
+      {note.type === 'note' && note.dot && (
+        <circle
+          cx={x + 12}
+          cy={y}
+          r={2}
+          fill={fillColor}
+        />
+      )}
+    </g>
+  );
+};
+
+export default React.memo(NoteView);

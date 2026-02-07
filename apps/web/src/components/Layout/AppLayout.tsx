@@ -1,0 +1,78 @@
+import React from 'react';
+import type { ViewMode } from '../../store/useStore';
+import { EXAMPLES, EXAMPLE_KEYS } from '../../examples';
+
+interface AppLayoutProps {
+  mode: ViewMode;
+  title?: string;
+  onModeToggle: () => void;
+  onLoadExample: (key: string) => void;
+  children: React.ReactNode;
+}
+
+const AppLayout: React.FC<AppLayoutProps> = ({
+  mode,
+  title,
+  onModeToggle,
+  onLoadExample,
+  children,
+}) => {
+  return (
+    <div className="h-screen flex flex-col">
+      {/* 顶部栏 */}
+      <header className="flex items-center justify-between px-4 py-2 border-b border-barline bg-white/80 backdrop-blur">
+        <div className="flex items-center gap-3">
+          <h1 className="text-lg font-semibold text-ink tracking-tight">
+            🎵 as-nmn
+          </h1>
+          {mode === 'play' && title && (
+            <span className="text-sm text-played">— {title}</span>
+          )}
+        </div>
+
+        <div className="flex items-center gap-3">
+          {/* 示例曲谱选择（仅编辑模式） */}
+          {mode === 'edit' && (
+            <div className="flex items-center gap-1">
+              <span className="text-xs text-played">示例:</span>
+              {EXAMPLE_KEYS.map((key) => (
+                <button
+                  key={key}
+                  onClick={() => onLoadExample(key)}
+                  className="text-xs px-2 py-1 rounded hover:bg-gray-100 text-highlight transition-colors"
+                >
+                  {EXAMPLES[key].name}
+                </button>
+              ))}
+            </div>
+          )}
+
+          {/* 模式切换 */}
+          <button
+            onClick={onModeToggle}
+            className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-barline hover:bg-gray-50 transition-colors"
+          >
+            {mode === 'edit' ? (
+              <>
+                <span>▶</span>
+                <span>演奏模式</span>
+              </>
+            ) : (
+              <>
+                <span>✏️</span>
+                <span>编辑模式</span>
+              </>
+            )}
+          </button>
+        </div>
+      </header>
+
+      {/* 主内容区 */}
+      <main className="flex-1 overflow-hidden">
+        {children}
+      </main>
+    </div>
+  );
+};
+
+export default AppLayout;

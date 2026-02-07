@@ -1,0 +1,36 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  min-height: 100vh;
+}
+
+/* 编辑器区域 */
+.editor-area {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 14px;
+  line-height: 1.6;
+  resize: none;
+  tab-size: 2;
+}
+
+/* 简谱 SVG */
+.score-note {
+  cursor: pointer;
+  transition: fill 0.05s;
+}
+
+.score-note:hover {
+  fill: theme('colors.highlight');
+}
+
+.score-note--active {
+  fill: theme('colors.highlight');
+  font-weight: 600;
+}
+
+.score-note--played {
+  fill: theme('colors.played');
+}
