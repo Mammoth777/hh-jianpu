@@ -74,7 +74,7 @@ const App: React.FC = () => {
       {mode === 'edit' ? (
         /* ===== 编辑模式 ===== */
         <ResizablePanels
-          left={<Editor value={source} onChange={setSource} />}
+          left={<Editor value={source} onChange={setSource} parseErrors={parseErrors} />}
           right={
             score ? (
               <div className="h-full flex flex-col">

@@ -25,6 +25,8 @@ export interface Metadata {
   timeSignature: TimeSignature;
   /** 每分钟拍数 */
   tempo: number;
+  /** 其他信息（作曲、作词、备注等），用 --- 包裹 */
+  other?: string;
 }
 
 // ---- 音符与时值 ----

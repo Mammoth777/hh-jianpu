@@ -6,7 +6,8 @@
 import type { LLMProviderConfig, LLMRequest, LLMResponse, OCRError } from './types';
 
 /** API 请求超时时间（毫秒） */
-const API_TIMEOUT = 30000; // 30秒
+// const API_TIMEOUT = 30000; // 30秒
+const API_TIMEOUT = 0; // 暂时禁用超时，用于测试实际响应时间
 
 /** 简谱识别 Prompt */
 const RECOGNITION_PROMPT = `你是一个简谱识别专家。请分析图片中的简谱（数字简谱/jianpu），将其转换为以下文本格式。
@@ -30,20 +31,54 @@ const RECOGNITION_PROMPT = `你是一个简谱识别专家。请分析图片中�
 - b 在数字前面表示降半音
 - 音符之间用空格分隔
 
+歌词规则（如果图片中有歌词）：
+- 使用 P 标记旋律行（可选）：P 1 2 3 4 |
+- 使用 C 标记歌词行：C 一 闪 一 闪
+- 一个汉字对应一个音符
+- 多字对应一个音符用括号：C (我的) 祖 国
+- 没有歌词的音符用下划线占位：C 星 _ _ 光
+
+其他信息（如果图片中有作曲、作词、备注等）：
+- 使用 --- 包裹其他信息
+- 格式：
+---
+作曲: <作曲人>
+作词: <作词人>
+备注: <其他说明>
+---
+
 注意：
 - 只输出格式化后的文本，不要添加任何解释
 - 如果某个音符不确定，用 ? 标记
 - 保持原谱的小节划分
 - 每行一个乐句或合理分行
+- 如果没有歌词，不要添加 C 行
+- 如果没有其他信息，不要添加 --- 区域
 
-示例输出：
+示例输出1（带歌词和其他信息）：
 标题: 小星星
 调号: C
 拍号: 4/4
 速度: 120
 
-1 1 5 5 | 6 6 5 - |
-4 4 3 3 | 2 2 1 - |`;
+---
+作曲: 莫扎特
+作词: Jane Taylor
+---
+
+P 1 1 5 5 | 6 6 5 - |
+C 一 闪 一 闪 亮 晶 晶
+
+P 4 4 3 3 | 2 2 1 - |
+C 满 天 都 是 小 星 星
+
+示例输出2（仅音符）：
+标题: 练习曲
+调号: C
+拍号: 4/4
+速度: 120
+
+1 2 3 4 | 5 6 7 1' |`;
 
 /**
  * 创建 LLM 客户端
@@ -78,15 +113,16 @@ abstract class BaseLLMClient {
    * 识别图片中的简谱
    */
   async recognize(request: LLMRequest): Promise<LLMResponse> {
+    // 暂时禁用超时控制，用于测试实际响应时间
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
+    // const timeoutId = setTimeout(() => controller.abort(), API_TIMEOUT);
 
     try {
       const response = await this.makeRequest(request, controller.signal);
-      clearTimeout(timeoutId);
+      // clearTimeout(timeoutId);
       return response;
     } catch (error) {
-      clearTimeout(timeoutId);
+      // clearTimeout(timeoutId);
       throw this.handleError(error);
     }
   }
