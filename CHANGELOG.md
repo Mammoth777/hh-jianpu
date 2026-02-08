@@ -7,6 +7,52 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-02-08
+
+### Added
+- 📷 **图片识别转简谱功能** - 使用 AI 从图片中识别简谱并转换为可编辑文本
+  - **核心能力**：
+    - 支持上传本地图片（JPG/PNG/WebP，最大10MB）
+    - 支持拖拽上传和粘贴图片
+    - 自动识别简谱数字、符号、元信息（标题、调号、拍号、速度）
+    - 可选替换或追加到编辑器
+  - **LLM 支持**：
+    - OpenAI (GPT-4o)
+    - Anthropic (Claude 3.5 Sonnet)
+    - 兼容 OpenAI API 格式的第三方服务
+  - **安全设计**：
+    - API Key 仅存储在浏览器本地（localStorage）
+    - 图片直接从浏览器发送到 LLM 服务商，无中间服务器
+    - 不配置 Key 不影响其他功能正常使用
+  - **UI 组件**：
+    - 设置面板（⚙️）：配置 LLM 服务商和 API Key
+    - 图片识别按钮（📷）：仅在编辑模式下显示
+    - 识别面板：拖拽/选择图片 → 预览 → 识别 → 结果展示
+  - **技术架构**：
+    - 前端预处理：图片压缩、格式转换（最大2048px）
+    - LLM 识别：超时控制（30秒）、错误处理
+    - 后处理：清洗 LLM 输出、语法验证
+  - **体验优化**：
+    - 进度提示（预处理 → 识别 → 整理结果）
+    - 友好错误提示（网络错误、API Key 无效、识别失败等）
+    - 识别结果预览和警告提示
+  - **文档**：
+    - 产品设计文档（功能边界、交互设计、识别能力）
+    - 架构设计文档（模块设计、数据流、类型定义）
+    - 开发 TODO（24个任务，7天工时估算）
+
+### Changed
+- 扩展状态管理（useStore）：新增 OCR 相关状态（ocrStatus, ocrResult, ocrError）和方法
+- AppLayout：新增设置按钮和图片识别入口
+
+### Technical
+- 新增目录结构：
+  - `apps/web/src/services/ocr/` - OCR 服务层
+  - `apps/web/src/components/Settings/` - 设置组件
+  - `apps/web/src/components/ImageImport/` - 图片导入组件
+- 零依赖：纯浏览器 API（Canvas、File、fetch）
+- 零回归：所有 45 个测试通过
+
 ## [0.1.2] - 2026-02-08
 
 ### Added
