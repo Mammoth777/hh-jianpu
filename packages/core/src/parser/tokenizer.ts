@@ -248,16 +248,16 @@ export function tokenize(source: string): Token[] {
       else if (ch === "'") {
         // 向后查找：跳过连续的单引号
         let lookAhead = i + 1;
-        while (lookAhead < bodyLine.length && bodyLine[lookAhead] === "'") {
+        while (lookAhead < lineContent.length && lineContent[lookAhead] === "'") {
           lookAhead++;
         }
         
         // 向前查找：检查前面是否有数字（可能跳过其他单引号）
         let lookBehind = i - 1;
-        while (lookBehind >= 0 && bodyLine[lookBehind] === "'") {
+        while (lookBehind >= 0 && lineContent[lookBehind] === "'") {
           lookBehind--;
         }
-        const prevCh = lookBehind >= 0 ? bodyLine[lookBehind] : '';
+        const prevCh = lookBehind >= 0 ? lineContent[lookBehind] : '';
         
         // 只有在前面是数字时，才是高八度标记
         if (prevCh >= '1' && prevCh <= '7') {
@@ -301,10 +301,10 @@ export function tokenize(source: string): Token[] {
       else if (ch === ',') {
         // 向前查找：检查前面是否有数字（可能跳过其他逗号）
         let lookBehind = i - 1;
-        while (lookBehind >= 0 && bodyLine[lookBehind] === ',') {
+        while (lookBehind >= 0 && lineContent[lookBehind] === ',') {
           lookBehind--;
         }
-        const prevCh = lookBehind >= 0 ? bodyLine[lookBehind] : '';
+        const prevCh = lookBehind >= 0 ? lineContent[lookBehind] : '';
         
         // 只有在前面是数字时，才是低八度标记
         if (prevCh >= '1' && prevCh <= '7') {
@@ -334,7 +334,7 @@ export function tokenize(source: string): Token[] {
       }
       // 降号
       else if (ch === 'b') {
-        const nextCh = i + 1 < bodyLine.length ? bodyLine[i + 1] : '';
+        const nextCh = i + 1 < lineContent.length ? lineContent[i + 1] : '';
         if (nextCh >= '1' && nextCh <= '7') {
           tokens.push({ 
             type: 'FLAT', 
