@@ -442,6 +442,18 @@ const Editor: React.FC<EditorProps> = ({ value, onChange }) => {
 
 ---
 
+---
+
+## 用户反馈闭环
+
+当用户以 `feedback:` 开头描述建议时，使用 `.github/prompts/user-feedback.prompt.md` 中定义的四步流程：
+1. **理解** — 明确用户需求和痛点
+2. **评估** — 评估可行性和优先级
+3. **实施** — 设计并实现功能
+4. **验证** — 收集用户反馈，持续改进
+
+---
+
 **项目版本**: v0.1.1  
 **最后更新**: 2026年2月7日  
 **维护者**: Jachy
