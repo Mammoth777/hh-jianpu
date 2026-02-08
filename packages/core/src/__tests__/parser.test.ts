@@ -406,3 +406,137 @@ describe('Beat Validation', () => {
     expect(result.errors[0].message).toContain('小节 2');
   });
 });
+
+describe('Lyrics Parsing', () => {
+  it('should parse basic lyrics', () => {
+    const source = `调号: C
+拍号: 4/4
+速度: 120
+
+1 2 3 4 |
+C 一 二 三 四`;
+    
+    const result = parse(source);
+    expect(result.errors).toHaveLength(0);
+    expect(result.score?.measures[0].lyrics).toBeDefined();
+    expect(result.score?.measures[0].lyrics?.syllables).toHaveLength(4);
+    expect(result.score?.measures[0].lyrics?.syllables[0].text).toBe('一');
+    expect(result.score?.measures[0].lyrics?.syllables[0].isPlaceholder).toBe(false);
+  });
+
+  it('should parse grouped lyrics', () => {
+    const source = `调号: C
+拍号: 4/4
+速度: 120
+
+1 2 3 4 |
+C (我的) 二 三 四`;
+    
+    const result = parse(source);
+    expect(result.errors).toHaveLength(0);
+    const lyrics = result.score?.measures[0].lyrics?.syllables;
+    expect(lyrics).toHaveLength(4);
+    expect(lyrics?.[0].text).toBe('我的');
+    expect(lyrics?.[0].isGroup).toBe(true);
+    expect(lyrics?.[1].text).toBe('二');
+    expect(lyrics?.[1].isGroup).toBe(false);
+  });
+
+  it('should parse placeholder lyrics', () => {
+    const source = `调号: C
+拍号: 4/4
+速度: 120
+
+1 2 3 4 |
+C 一 _ _ 四`;
+    
+    const result = parse(source);
+    expect(result.errors).toHaveLength(0);
+    const lyrics = result.score?.measures[0].lyrics?.syllables;
+    expect(lyrics).toHaveLength(4);
+    expect(lyrics?.[0].text).toBe('一');
+    expect(lyrics?.[0].isPlaceholder).toBe(false);
+    expect(lyrics?.[1].text).toBe('');
+    expect(lyrics?.[1].isPlaceholder).toBe(true);
+    expect(lyrics?.[2].text).toBe('');
+    expect(lyrics?.[2].isPlaceholder).toBe(true);
+    expect(lyrics?.[3].text).toBe('四');
+  });
+
+  it('should detect lyrics count mismatch', () => {
+    const source = `调号: C
+拍号: 4/4
+速度: 120
+
+1 2 3 4 |
+C 一 二`;
+    
+    const result = parse(source);
+    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.errors[0].message).toContain('歌词数量');
+    expect(result.errors[0].message).toContain('2');
+    expect(result.errors[0].message).toContain('4');
+  });
+
+  it('should associate lyrics with multiple measures', () => {
+    const source = `调号: C
+拍号: 4/4
+速度: 120
+
+1 2 3 4 | 5 6 7 1' |
+C 一 二 三 四 五 六 七 八`;
+    
+    const result = parse(source);
+    expect(result.errors).toHaveLength(0);
+    expect(result.score?.measures[0].lyrics?.syllables).toHaveLength(4);
+    expect(result.score?.measures[1].lyrics?.syllables).toHaveLength(4);
+    expect(result.score?.measures[0].lyrics?.syllables[0].text).toBe('一');
+    expect(result.score?.measures[1].lyrics?.syllables[0].text).toBe('五');
+  });
+
+  it('should skip grace notes when associating lyrics', () => {
+    const source = `调号: C
+拍号: 4/4
+速度: 120
+
+1 ^2_ 3 4 |
+C 一 二 三`;
+    
+    const result = parse(source);
+    // 应该有节拍验证错误（3个有效音符 = 3拍，不满足4/4）
+    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.score?.measures[0].lyrics?.syllables).toHaveLength(3);
+  });
+
+  it('should handle multiple lyrics lines', () => {
+    const source = `调号: C
+拍号: 4/4
+速度: 120
+
+1 2 3 4 |
+C 一 二
+C 三 四`;
+    
+    const result = parse(source);
+    expect(result.errors).toHaveLength(0);
+    const lyrics = result.score?.measures[0].lyrics?.syllables;
+    expect(lyrics).toHaveLength(4);
+    expect(lyrics?.[0].text).toBe('一');
+    expect(lyrics?.[2].text).toBe('三');
+  });
+
+  it('should parse lyrics with rest notes', () => {
+    const source = `调号: C
+拍号: 4/4
+速度: 120
+
+1 2 3 4 |
+C 一 二 三`;
+    
+    const result = parse(source);
+    // 应该有歌词数量不匹配错误（3个歌词 vs 4个音符）
+    expect(result.errors.length).toBeGreaterThan(0);
+    expect(result.errors[0].message).toContain('歌词数量');
+  });
+});
+

@@ -89,6 +89,24 @@ export interface Breath {
 /** 音符组内元素 */
 export type NoteElement = Note | Rest | Tie | Breath;
 
+// ---- 歌词 ----
+
+/** 歌词片段（对应一个音符） */
+export interface LyricsSyllable {
+  /** 歌词文字（可能是单字、多字分组、或占位符） */
+  text: string;
+  /** 是否为占位符（对应无词音符，如休止符、前奏） */
+  isPlaceholder: boolean;
+  /** 是否为分组（多字一音） */
+  isGroup: boolean;
+}
+
+/** 小节的歌词 */
+export interface MeasureLyrics {
+  /** 歌词片段数组，与该小节的有效音符一一对应 */
+  syllables: LyricsSyllable[];
+}
+
 // ---- 小节与曲谱 ----
 
 /** 小节 */
@@ -97,6 +115,8 @@ export interface Measure {
   number: number;
   /** 小节内的音符序列 */
   notes: NoteElement[];
+  /** 可选的歌词 */
+  lyrics?: MeasureLyrics;
 }
 
 /** 完整曲谱 AST */
@@ -171,6 +191,22 @@ export interface NotePosition {
   slurGroup?: number;
 }
 
+/** 歌词渲染位置 */
+export interface LyricsPosition {
+  /** 歌词文字 */
+  text: string;
+  /** SVG x 坐标 */
+  x: number;
+  /** SVG y 坐标 */
+  y: number;
+  /** 是否为占位符 */
+  isPlaceholder: boolean;
+  /** 是否为分组（多字一音） */
+  isGroup: boolean;
+  /** 对应的音符在扁平化序列中的索引 */
+  noteIndex: number;
+}
+
 /** 小节渲染布局 */
 export interface MeasureLayout {
   measure: Measure;
@@ -178,6 +214,8 @@ export interface MeasureLayout {
   y: number;
   width: number;
   notes: NotePosition[];
+  /** 可选的歌词位置 */
+  lyrics?: LyricsPosition[];
 }
 
 /** 行布局 */

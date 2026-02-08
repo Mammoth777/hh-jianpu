@@ -303,9 +303,43 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                   </p>
                 </div>
 
+                {/* 歌词 */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">10. 歌词（Lyrics）✨</h4>
+                  <p className="text-sm text-gray-700 mb-2">
+                    在音符行后添加歌词行（以 <code className="bg-gray-100 px-2 py-1 rounded">C</code> 开头），支持一字对一音、分组、占位符
+                  </p>
+                  <table className="min-w-full border border-gray-300 text-sm mb-2">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="border border-gray-300 px-3 py-2">类型</th>
+                        <th className="border border-gray-300 px-3 py-2">语法</th>
+                        <th className="border border-gray-300 px-3 py-2">示例</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        ['旋律行（可选）', 'P', 'P 1 1 5 5'],
+                        ['一字对一音', 'C 单字符', 'C 一 闪 一 闪'],
+                        ['多字对一音', '(多字)', 'C (我的) 祖 国'],
+                        ['占位符', '_', 'C 星 _ _ 光'],
+                      ].map(([type, syntax, example]) => (
+                        <tr key={type}>
+                          <td className="border border-gray-300 px-3 py-2">{type}</td>
+                          <td className="border border-gray-300 px-3 py-2 font-mono">{syntax}</td>
+                          <td className="border border-gray-300 px-3 py-2 font-mono">{example}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="text-sm text-gray-600">
+                    完整示例：<code className="bg-gray-100 px-2 py-1 rounded">P 1 1 5 5 | 6 6 5 -<br />C 一 闪 一 闪 亮 晶 晶 _</code>
+                  </p>
+                </div>
+
                 {/* 倚音 */}
                 <div>
-                  <h4 className="font-semibold text-gray-800 mb-2">10. 倚音（Grace Note）✨</h4>
+                  <h4 className="font-semibold text-gray-800 mb-2">11. 倚音（Grace Note）✨</h4>
                   <p className="text-sm text-gray-700 mb-2">
                     使用 <code className="bg-gray-100 px-2 py-1 rounded">^</code> 前缀标记倚音（装饰音）
                   </p>

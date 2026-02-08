@@ -20,6 +20,9 @@ export type TokenType =
   | 'BREATH'         // v 换气记号
   | 'GRACE_PREFIX'   // ^ 倚音前缀
   | 'TRILL'          // ~ 波音记号
+  | 'MELODY_MARKER'  // P 旋律标记
+  | 'LYRICS_MARKER'  // C 歌词标记
+  | 'LYRICS_TEXT'    // 歌词内容
   | 'NEWLINE'        // 换行
   | 'EOF'            // 结束
   | 'ERROR';         // 无法识别
@@ -96,8 +99,71 @@ export function tokenize(source: string): Token[] {
     column = 1;
     let hasSpaceBeforeNext = false; // 跟踪是否遇到过空格
     
-    for (let i = 0; i < bodyLine.length; i++) {
-      const ch = bodyLine[i];
+    // 检测旋律行（P 开头）- 跳过 P 标记但继续解析音符
+    let lineContent = bodyLine;
+    if (bodyLine.trim().startsWith('P ') || bodyLine.trim() === 'P') {
+      tokens.push({
+        type: 'MELODY_MARKER',
+        value: 'P',
+        line,
+        column: 1,
+        offset: pos
+      });
+      // 移除 P 标记，继续解析剩余内容
+      const pIndex = bodyLine.indexOf('P');
+      lineContent = bodyLine.substring(pIndex + 1).trimStart();
+      // 如果 P 后面没有内容，跳到下一行
+      if (!lineContent) {
+        tokens.push({
+          type: 'NEWLINE',
+          value: '\n',
+          line,
+          column: bodyLine.length + 1,
+          offset: pos + bodyLine.length
+        });
+        line++;
+        pos += bodyLine.length + 1;
+        continue;
+      }
+    }
+    
+    // 检测歌词行（C 开头）
+    if (lineContent.trim().startsWith('C ') || lineContent.trim() === 'C') {
+      tokens.push({
+        type: 'LYRICS_MARKER',
+        value: 'C',
+        line,
+        column: 1,
+        offset: pos
+      });
+      
+      const lyricsText = lineContent.trim().substring(1).trim();
+      if (lyricsText) {
+        tokens.push({
+          type: 'LYRICS_TEXT',
+          value: lyricsText,
+          line,
+          column: bodyLine.indexOf(lyricsText) + 1,
+          offset: pos + bodyLine.indexOf(lyricsText)
+        });
+      }
+      
+      tokens.push({
+        type: 'NEWLINE',
+        value: '\n',
+        line,
+        column: bodyLine.length + 1,
+        offset: pos + bodyLine.length
+      });
+      
+      line++;
+      pos += bodyLine.length + 1;
+      continue;
+    }
+    
+    // 解析音符内容（使用处理后的 lineContent）
+    for (let i = 0; i < lineContent.length; i++) {
+      const ch = lineContent[i];
 
       // 记录空格
       if (ch === ' ' || ch === '\t') {

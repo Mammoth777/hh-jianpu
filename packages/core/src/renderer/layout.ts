@@ -9,6 +9,8 @@ import type {
   MeasureLayout,
   NotePosition,
   NoteElement,
+  LyricsPosition,
+  Measure,
 } from '../types/index.js';
 
 /** 布局配置 */
@@ -27,6 +29,10 @@ export interface LayoutConfig {
   marginLeft: number;
   /** 顶部边距（px），用于标题和元信息 */
   marginTop: number;
+  /** 歌词 Y 偏移（相对行底）（px） */
+  lyricsOffset: number;
+  /** 歌词字号比例（相对音符） */
+  lyricsFontSizeRatio: number;
 }
 
 /** 默认布局配置 */
@@ -38,6 +44,8 @@ export const DEFAULT_LAYOUT_CONFIG: LayoutConfig = {
   lineGap: 30,
   marginLeft: 40,
   marginTop: 80,
+  lyricsOffset: 10,
+  lyricsFontSizeRatio: 0.85,
 };
 
 /**
@@ -116,6 +124,7 @@ export function createLayout(score: Score, config: Partial<LayoutConfig> = {}): 
         y: lineY,
         width: measureWidth,
         notes: notePositions,
+        lyrics: calculateLyricsPositions(measure, notePositions, lineY, cfg),
       });
     }
 
@@ -136,4 +145,53 @@ export function createLayout(score: Score, config: Partial<LayoutConfig> = {}): 
     lines,
     allNotes,
   };
+}
+
+/**
+ * 计算歌词位置
+ * 
+ * @param measure 小节 AST
+ * @param notePositions 音符位置数组
+ * @param lineY 行 Y 坐标
+ * @param config 布局配置
+ * @returns 歌词位置数组
+ */
+function calculateLyricsPositions(
+  measure: Measure,
+  notePositions: NotePosition[],
+  lineY: number,
+  config: LayoutConfig
+): LyricsPosition[] | undefined {
+  if (!measure.lyrics || measure.lyrics.syllables.length === 0) {
+    return undefined;
+  }
+
+  const positions: LyricsPosition[] = [];
+  let syllableIndex = 0;
+
+  // 遍历音符位置，为每个有效音符分配歌词
+  for (let i = 0; i < notePositions.length; i++) {
+    const notePos = notePositions[i];
+    const note = notePos.note;
+
+    // 只为非倚音的音符分配歌词
+    if (note.type === 'note' && !note.isGrace) {
+      if (syllableIndex < measure.lyrics.syllables.length) {
+        const syllable = measure.lyrics.syllables[syllableIndex];
+        
+        positions.push({
+          text: syllable.text,
+          x: notePos.x,
+          y: lineY + config.lineHeight + config.lyricsOffset,
+          isPlaceholder: syllable.isPlaceholder,
+          isGroup: syllable.isGroup,
+          noteIndex: notePos.index,
+        });
+        
+        syllableIndex++;
+      }
+    }
+  }
+
+  return positions.length > 0 ? positions : undefined;
 }

@@ -17,6 +17,8 @@ import type {
   TimeSignature,
   ParseError,
   ParseResult,
+  LyricsSyllable,
+  MeasureLyrics,
 } from '../types/index.js';
 
 /** 默认元信息 */
@@ -69,6 +71,140 @@ function parseMetadata(tokens: Token[]): Metadata {
   return metadata;
 }
 
+// ============================================================
+// Lyrics 解析函数
+// ============================================================
+
+/**
+ * 解析歌词文本为音节数组
+ * 支持：单字、分组(多字)、占位符_、延长符-
+ * 
+ * @example
+ * parseLyrics("一 闪 (我的) _ -") → [
+ *   { text: "一", isPlaceholder: false, isGroup: false },
+ *   { text: "闪", isPlaceholder: false, isGroup: false },
+ *   { text: "我的", isPlaceholder: false, isGroup: true },
+ *   { text: "", isPlaceholder: true, isGroup: false },
+ *   { text: "", isPlaceholder: true, isGroup: false }
+ * ]
+ */
+function parseLyrics(lyricsText: string): LyricsSyllable[] {
+  const syllables: LyricsSyllable[] = [];
+  let i = 0;
+  
+  while (i < lyricsText.length) {
+    const ch = lyricsText[i];
+    
+    // 跳过空格
+    if (ch === ' ' || ch === '\t') {
+      i++;
+      continue;
+    }
+    
+    // 分组 (多字)
+    if (ch === '(') {
+      const closeIdx = lyricsText.indexOf(')', i);
+      if (closeIdx === -1) {
+        // 未闭合，提取到结尾
+        const text = lyricsText.substring(i + 1).trim();
+        syllables.push({ text, isPlaceholder: false, isGroup: true });
+        break;
+      }
+      const text = lyricsText.substring(i + 1, closeIdx).trim();
+      syllables.push({ text, isPlaceholder: false, isGroup: true });
+      i = closeIdx + 1;
+      continue;
+    }
+    
+    // 占位符 _
+    if (ch === '_') {
+      syllables.push({ text: '', isPlaceholder: true, isGroup: false });
+      i++;
+      continue;
+    }
+    
+    // 普通单字
+    syllables.push({ text: ch, isPlaceholder: false, isGroup: false });
+    i++;
+  }
+  
+  return syllables;
+}
+
+/**
+ * 将歌词关联到小节，检测数量不匹配
+ * 
+ * @param measures 已解析的小节数组
+ * @param lyricsTokens 歌词相关 Token 数组 [{LYRICS_MARKER, LYRICS_TEXT}, ...]
+ * @returns 错误数组
+ */
+function associateLyricsToMeasures(
+  measures: Measure[],
+  lyricsTokens: Token[]
+): ParseError[] {
+  const errors: ParseError[] = [];
+  
+  // 提取所有歌词文本行
+  const lyricsLines: Array<{ syllables: LyricsSyllable[]; line: number }> = [];
+  for (let i = 0; i < lyricsTokens.length; i++) {
+    if (lyricsTokens[i].type === 'LYRICS_MARKER') {
+      const nextToken = lyricsTokens[i + 1];
+      if (nextToken && nextToken.type === 'LYRICS_TEXT') {
+        const syllables = parseLyrics(nextToken.value);
+        lyricsLines.push({ syllables, line: nextToken.line });
+      }
+    }
+  }
+  
+  if (lyricsLines.length === 0) {
+    return errors;
+  }
+  
+  // 将所有歌词合并为一个数组
+  const allSyllables: LyricsSyllable[] = [];
+  lyricsLines.forEach(({ syllables }) => allSyllables.push(...syllables));
+  
+  // 统计所有小节中的"有效音符"数量（排除休止符、延长线、呼吸记号）
+  let totalEffectiveNotes = 0;
+  measures.forEach(measure => {
+    measure.notes.forEach(note => {
+      if (note.type === 'note' && !note.isGrace) {
+        totalEffectiveNotes++;
+      }
+    });
+  });
+  
+  // 检测数量不匹配
+  if (allSyllables.length !== totalEffectiveNotes) {
+    errors.push({
+      message: `歌词数量（${allSyllables.length}）与有效音符数量（${totalEffectiveNotes}）不匹配`,
+      position: { line: lyricsLines[0].line, column: 1, offset: 0 },
+      length: 1,
+    });
+  }
+  
+  // 关联歌词到小节
+  let syllableIndex = 0;
+  for (const measure of measures) {
+    const measureSyllables: LyricsSyllable[] = [];
+    
+    for (const note of measure.notes) {
+      if (note.type === 'note' && !note.isGrace) {
+        if (syllableIndex < allSyllables.length) {
+          measureSyllables.push(allSyllables[syllableIndex]);
+          syllableIndex++;
+        }
+      }
+    }
+    
+    if (measureSyllables.length > 0) {
+      measure.lyrics = { syllables: measureSyllables };
+    }
+  }
+  
+  return errors;
+}
+
 /**
  * 将 Token 流解析为音符序列，按小节分组
  */
@@ -78,9 +214,13 @@ function parseBody(tokens: Token[]): { measures: Measure[]; errors: ParseError[]
   let currentNotes: NoteElement[] = [];
   let measureNumber = 1;
 
-  // 过滤掉元信息和换行 Token
+  // 过滤掉元信息和换行 Token，但保留歌词 Token
+  const lyricsTokens = tokens.filter(
+    t => t.type === 'LYRICS_MARKER' || t.type === 'LYRICS_TEXT'
+  );
+  
   const bodyTokens = tokens.filter(
-    t => !['METADATA_KEY', 'METADATA_VALUE', 'NEWLINE', 'EOF'].includes(t.type)
+    t => !['METADATA_KEY', 'METADATA_VALUE', 'NEWLINE', 'EOF', 'MELODY_MARKER', 'LYRICS_MARKER', 'LYRICS_TEXT'].includes(t.type)
   );
 
   let i = 0;
@@ -280,6 +420,10 @@ function parseBody(tokens: Token[]): { measures: Measure[]; errors: ParseError[]
 
   // 识别圆滑线组（基于括号）
   assignSlurGroups(measures, bodyTokens);
+
+  // 关联歌词到小节
+  const lyricsErrors = associateLyricsToMeasures(measures, lyricsTokens);
+  errors.push(...lyricsErrors);
 
   return { measures, errors };
 }

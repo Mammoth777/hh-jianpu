@@ -79,6 +79,30 @@ const MeasureView: React.FC<MeasureViewProps> = ({ layout, currentNoteIndex, onN
           onClick={onNoteClick}
         />
       ))}
+
+      {/* 歌词 */}
+      {layout.lyrics?.map((lyricsPos, idx) => {
+        if (lyricsPos.isPlaceholder) {
+          return null; // 占位符不显示
+        }
+        
+        const isHighlight = lyricsPos.noteIndex === currentNoteIndex;
+        const isPlayed = currentNoteIndex >= 0 && lyricsPos.noteIndex < currentNoteIndex;
+        
+        return (
+          <text
+            key={idx}
+            x={lyricsPos.x}
+            y={lyricsPos.y}
+            textAnchor="middle"
+            fontSize={lyricsPos.isGroup ? 13 : 16}
+            fill={isHighlight ? '#DC2626' : isPlayed ? '#78716C' : '#57534E'}
+            className="transition-colors duration-150"
+          >
+            {lyricsPos.text}
+          </text>
+        );
+      })}
     </g>
   );
 };
