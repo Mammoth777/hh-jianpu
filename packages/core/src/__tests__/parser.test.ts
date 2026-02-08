@@ -118,4 +118,89 @@ describe('Parser', () => {
     expect(result.score?.measures[0].number).toBe(1);
     expect(result.score?.measures[1].number).toBe(2);
   });
+
+  it('should parse slur groups within single measure', () => {
+    const source = `调号: C
+拍号: 4/4
+速度: 120
+
+(1 2 3) 4 |`;
+
+    const result = parse(source);
+    const notes = result.score!.measures[0].notes;
+    
+    // 前三个音符应该有相同的 slurGroup
+    if (notes[0].type === 'note' && notes[1].type === 'note' && notes[2].type === 'note') {
+      expect(notes[0].slurGroup).toBeDefined();
+      expect(notes[1].slurGroup).toBe(notes[0].slurGroup);
+      expect(notes[2].slurGroup).toBe(notes[0].slurGroup);
+    }
+    
+    // 第四个音符不应该有 slurGroup
+    if (notes[3].type === 'note') {
+      expect(notes[3].slurGroup).toBeUndefined();
+    }
+  });
+
+  it('should parse slur groups across measures', () => {
+    const source = `调号: C
+拍号: 4/4
+速度: 120
+
+(1 2 | 3 4) 5 |`;
+
+    const result = parse(source);
+    
+    // 第一小节的前两个音符
+    const measure1Notes = result.score!.measures[0].notes;
+    // 第二小节的音符
+    const measure2Notes = result.score!.measures[1].notes;
+    
+    // 前两个音符应该有相同的 slurGroup
+    if (measure1Notes[0].type === 'note' && measure1Notes[1].type === 'note') {
+      expect(measure1Notes[0].slurGroup).toBeDefined();
+      expect(measure1Notes[1].slurGroup).toBe(measure1Notes[0].slurGroup);
+    }
+    
+    // 第二小节的前两个音符应该有相同的 slurGroup（与第一小节相同）
+    if (measure2Notes[0].type === 'note' && measure2Notes[1].type === 'note') {
+      expect(measure2Notes[0].slurGroup).toBeDefined();
+      if (measure1Notes[0].type === 'note') {
+        expect(measure2Notes[0].slurGroup).toBe(measure1Notes[0].slurGroup);
+        expect(measure2Notes[1].slurGroup).toBe(measure1Notes[0].slurGroup);
+      }
+    }
+    
+    // 第五个音符不应该有 slurGroup
+    if (measure2Notes[2].type === 'note') {
+      expect(measure2Notes[2].slurGroup).toBeUndefined();
+    }
+  });
+
+  it('should parse multiple slur groups in one line', () => {
+    const source = `调号: C
+拍号: 4/4
+速度: 120
+
+(1 2) (3 4) |`;
+
+    const result = parse(source);
+    const notes = result.score!.measures[0].notes;
+    
+    // 前两个音符一组
+    if (notes[0].type === 'note' && notes[1].type === 'note') {
+      expect(notes[0].slurGroup).toBeDefined();
+      expect(notes[1].slurGroup).toBe(notes[0].slurGroup);
+    }
+    
+    // 后两个音符另一组（不同的 slurGroup）
+    if (notes[2].type === 'note' && notes[3].type === 'note') {
+      expect(notes[2].slurGroup).toBeDefined();
+      expect(notes[3].slurGroup).toBe(notes[2].slurGroup);
+      
+      if (notes[0].type === 'note') {
+        expect(notes[2].slurGroup).not.toBe(notes[0].slurGroup);
+      }
+    }
+  });
 });

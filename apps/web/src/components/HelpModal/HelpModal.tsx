@@ -231,6 +231,66 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                   <p className="text-sm text-gray-600 mb-2">使用 <code className="bg-gray-100 px-2 py-1 rounded">|</code> 分隔小节</p>
                   <p className="text-sm text-gray-600">示例：<code className="bg-gray-100 px-2 py-1 rounded">1 2 3 4 | 5 6 7 1'</code></p>
                 </div>
+
+                {/* 连音线 */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">7. 连音线（Beam）</h4>
+                  <p className="text-sm text-gray-600 mb-2">八分音符通过<strong>空格控制</strong>分组，无空格的相邻八分音符会用横线连接</p>
+                  <table className="min-w-full border border-gray-300 text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="border border-gray-300 px-3 py-2">源码</th>
+                        <th className="border border-gray-300 px-3 py-2">视觉效果</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        ['1_ 2_', '各自独立减时线'],
+                        ['1_2_', '一条横线连接'],
+                        ['1_2_ 3_4_', '两条独立横线（2+2）'],
+                        ['1_2_3_4_', '一条横线连接全部'],
+                      ].map(([code, effect]) => (
+                        <tr key={code}>
+                          <td className="border border-gray-300 px-3 py-2 font-mono">{code}</td>
+                          <td className="border border-gray-300 px-3 py-2">{effect}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* 圆滑线说明 */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">8. 圆滑线（Slur）✨</h4>
+                  <p className="text-sm text-gray-700 mb-2">
+                    使用小括号 <code className="bg-gray-100 px-2 py-1 rounded">()</code> 标记圆滑演奏的音符组
+                  </p>
+                  <table className="min-w-full border border-gray-300 text-sm">
+                    <thead className="bg-gray-50">
+                      <tr>
+                        <th className="border border-gray-300 px-3 py-2">类型</th>
+                        <th className="border border-gray-300 px-3 py-2">语法</th>
+                        <th className="border border-gray-300 px-3 py-2">示例</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {[
+                        ['延音线（相同音高）', '-', '1 - -'],
+                        ['连音线（八分音符）', '无空格', '1_2_3_'],
+                        ['圆滑线（不同音高）', '()', '(1 2 3)'],
+                      ].map(([type, syntax, example]) => (
+                        <tr key={type}>
+                          <td className="border border-gray-300 px-3 py-2">{type}</td>
+                          <td className="border border-gray-300 px-3 py-2 font-mono">{syntax}</td>
+                          <td className="border border-gray-300 px-3 py-2 font-mono">{example}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  <p className="text-sm text-gray-600 mt-2">
+                    圆滑线支持跨小节：<code className="bg-gray-100 px-2 py-1 rounded">(1 2 | 3 4)</code>
+                  </p>
+                </div>
               </div>
             </section>
 
@@ -259,6 +319,16 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                 <div className="border-l-4 border-blue-500 pl-4">
                   <p className="font-semibold text-gray-800">Q: 如何区分低八度的 . 和附点？</p>
                   <p className="text-sm text-gray-600 mt-1">A: 低八度的 . 写在音符后（如 1.），建议使用下划线表示时值以避免混淆。</p>
+                </div>
+
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <p className="font-semibold text-gray-800">Q: 如何控制八分音符连音线？</p>
+                  <p className="text-sm text-gray-600 mt-1">A: 通过空格控制。<code className="bg-gray-100 px-1 rounded">1_2_</code> 无空格会连接，<code className="bg-gray-100 px-1 rounded">1_ 2_</code> 有空格则分开。</p>
+                </div>
+
+                <div className="border-l-4 border-blue-500 pl-4">
+                  <p className="font-semibold text-gray-800">Q: 如何表示延音线（相同音高连线）？</p>
+                  <p className="text-sm text-gray-600 mt-1">A: 使用 - 延长线。<code className="bg-gray-100 px-1 rounded">1 - -</code> 表示 do 持续 3 拍。</p>
                 </div>
 
                 <div className="border-l-4 border-blue-500 pl-4">

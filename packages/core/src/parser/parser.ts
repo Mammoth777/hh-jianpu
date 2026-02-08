@@ -142,6 +142,12 @@ function parseBody(tokens: Token[]): { measures: Measure[]; errors: ParseError[]
         break;
       }
 
+      case 'SLUR_START':
+      case 'SLUR_END':
+        // 圆滑线括号在后续统一处理
+        i++;
+        break;
+
       default:
         i++;
         break;
@@ -155,6 +161,9 @@ function parseBody(tokens: Token[]): { measures: Measure[]; errors: ParseError[]
 
   // 为所有小节识别连音组（基于空格分隔）
   assignBeamGroups(measures, bodyTokens);
+
+  // 识别圆滑线组（基于括号）
+  assignSlurGroups(measures, bodyTokens);
 
   return { measures, errors };
 }
@@ -208,6 +217,54 @@ function assignBeamGroups(measures: Measure[], tokens: Token[]): void {
       } else {
         i++;
       }
+    }
+  }
+}
+
+/**
+ * 识别并标记圆滑线组
+ * 规则：括号 () 内的所有音符属于同一个圆滑线组，可以跨小节
+ */
+function assignSlurGroups(measures: Measure[], tokens: Token[]): void {
+  let globalSlurGroupId = 0;
+  let slurDepth = 0; // 当前嵌套深度（支持嵌套括号）
+  let currentSlurGroupId = 0;
+  let noteIndex = 0; // 当前处理到第几个音符
+
+  // 扁平化所有音符用于标记
+  const allNotes: Note[] = [];
+  for (const measure of measures) {
+    for (const note of measure.notes) {
+      if (note.type === 'note') {
+        allNotes.push(note);
+      }
+    }
+  }
+
+  // 遍历 tokens，根据括号标记音符
+  let currentNoteIdx = 0;
+  for (const token of tokens) {
+    if (token.type === 'SLUR_START') {
+      slurDepth++;
+      if (slurDepth === 1) {
+        // 新的圆滑线组开始
+        globalSlurGroupId++;
+        currentSlurGroupId = globalSlurGroupId;
+      }
+    } else if (token.type === 'SLUR_END') {
+      slurDepth--;
+      if (slurDepth === 0) {
+        currentSlurGroupId = 0;
+      }
+    } else if (token.type === 'NOTE' && currentSlurGroupId > 0) {
+      // 在圆滑线组内的音符，标记 slurGroup
+      if (currentNoteIdx < allNotes.length) {
+        allNotes[currentNoteIdx].slurGroup = currentSlurGroupId;
+      }
+      currentNoteIdx++;
+    } else if (token.type === 'NOTE') {
+      // 不在圆滑线组内的音符，跳过
+      currentNoteIdx++;
     }
   }
 }

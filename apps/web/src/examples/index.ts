@@ -33,6 +33,16 @@ export const EXAMPLES = {
 3 3 4 5 | 5 4 3 2 | 1 1 2 3 | 3 2 2 - |
 3 3 4 5 | 5 4 3 2 | 1 1 2 3 | 2 1 1 - |`,
   },
+
+  slurDemo: {
+    name: '圆滑线示例',
+    source: `标题: 圆滑线示例
+调号: C
+拍号: 4/4
+速度: 120
+
+(1 2 3) 4 | (5 6 | 7 1') 2' | (3'_ 3'_ 2' 1') 7 | 1' - - - |`,
+  },
 } as const;
 
 export type ExampleKey = keyof typeof EXAMPLES;

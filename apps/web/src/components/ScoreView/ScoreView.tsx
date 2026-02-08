@@ -111,9 +111,66 @@ const ScoreView: React.FC<ScoreViewProps> = ({
             ))}
           </g>
         ))}
+
+        {/* 圆滑线（在所有音符之上渲染，支持跨小节） */}
+        {renderSlurs(layout.allNotes, currentNoteIndex)}
       </svg>
     </div>
   );
 };
+
+// 辅助函数：渲染圆滑线
+function renderSlurs(allNotes: typeof import('@as-nmn/core').NotePosition[], currentNoteIndex: number) {
+  const slurGroups = new Map<number, typeof allNotes>();
+  
+  // 收集所有圆滑线组
+  allNotes.forEach(note => {
+    if (note.slurGroup !== undefined) {
+      if (!slurGroups.has(note.slurGroup)) {
+        slurGroups.set(note.slurGroup, []);
+      }
+      slurGroups.get(note.slurGroup)!.push(note);
+    }
+  });
+
+  return Array.from(slurGroups.entries()).map(([groupId, notes]) => {
+    if (notes.length < 2) return null;
+
+    const firstNote = notes[0];
+    const lastNote = notes[notes.length - 1];
+
+    // 检查是否有高亮/已播放状态
+    const hasActive = notes.some(n => n.index === currentNoteIndex);
+    const hasPlayed = notes.some(n => currentNoteIndex >= 0 && n.index < currentNoteIndex);
+    
+    let strokeColor = '#1C1917'; // ink
+    if (hasActive) strokeColor = '#2563EB'; // highlight
+    else if (hasPlayed) strokeColor = '#94A3B8'; // played
+
+    // 计算贝塞尔曲线控制点
+    const startX = firstNote.x;
+    const startY = firstNote.y - 24; // 音符上方
+    const endX = lastNote.x;
+    const endY = lastNote.y - 24;
+    
+    // 控制点：弧线中点向上弯曲
+    const midX = (startX + endX) / 2;
+    const midY = Math.min(startY, endY) - 15; // 向上弯曲15px
+    
+    // 使用二次贝塞尔曲线
+    const pathD = `M ${startX},${startY} Q ${midX},${midY} ${endX},${endY}`;
+
+    return (
+      <path
+        key={`slur-${groupId}`}
+        d={pathD}
+        fill="none"
+        stroke={strokeColor}
+        strokeWidth={1.5}
+        opacity={0.8}
+      />
+    );
+  });
+}
 
 export default React.memo(ScoreView);

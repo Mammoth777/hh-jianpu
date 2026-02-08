@@ -58,6 +58,8 @@ export interface Note {
   dot: boolean;
   /** 连音组ID（用于渲染连音线beam），相同ID的音符共享一条横线 */
   beamGroup?: number;
+  /** 圆滑线组ID（用于渲染圆滑线slur），相同ID的音符共享一条弧线 */
+  slurGroup?: number;
   /** 此音符前是否有空格（用于连音组判断，内部使用） */
   hasSpaceBefore?: boolean;
 }
@@ -155,6 +157,8 @@ export interface NotePosition {
   measureNumber: number;
   /** 连音组编号（用于渲染连音线 beam），相同编号的音符共享一条横线 */
   beamGroup?: number;
+  /** 圆滑线组编号（用于渲染圆滑线 slur），相同编号的音符共享一条弧线 */
+  slurGroup?: number;
 }
 
 /** 小节渲染布局 */

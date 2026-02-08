@@ -8,9 +8,26 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ### Added
+- 🎵 **圆滑线（Slur）功能** - 使用小括号标记连贯演奏
+  - **语法**: `(1 2 3)` - 用圆滑线连接音符
+  - **跨小节**: `(1 2 | 3 4)` - 支持跨越小节线
+  - **视觉效果**: SVG 二次贝塞尔曲线，向上弯曲的弧线
+  - **动态高亮**: 播放时圆滑线根据音符状态变色（活动/已播放）
+  - **架构实现**:
+    - Tokenizer: 新增 `SLUR_START` `(` 和 `SLUR_END` `)` token 类型
+    - Parser: 新增 `assignSlurGroups()` 函数识别括号内音符
+    - Renderer: 传递 `slurGroup` 字段到 UI 层
+    - UI: ScoreView 组件使用 `<path>` 元素渲染弧线
+  - **测试覆盖**: 新增 3 个单元测试（单小节、跨小节、多组圆滑线）
+  - **文档更新**:
+    - `docs/user-guide/notation-syntax.md`: 更新第 10 节，详细说明三种连线区别
+    - `apps/web/src/components/HelpModal/HelpModal.tsx`: 更新第 8 节，添加圆滑线表格
+    - 新增示例: "圆滑线示例" - 展示各种圆滑线用法
+
 - 📖 **简谱源码编写说明文档** - 详细的语法规则和示例
   - 完整的元信息、音符、高低八度、变音记号说明
   - 时值（减时线、延长线）、休止符、小节线规则
+  - 连音线（Beam）和圆滑线（Slur）详细对比
   - 实用示例和常见问题解答
   - 学习路径和调试技巧
   - 文档位置：`docs/user-guide/notation-syntax.md`
@@ -33,6 +50,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - 🎨 **编辑器布局优化**
   - 从固定 50/50 分割改为可自定义宽度
   - 提升用户自定义体验
+
+### Tests
+- ✅ **所有测试通过**: 25/25 单元测试
+  - Parser: 10 个测试（新增 3 个圆滑线测试）
+  - Player: 11 个测试
+  - Renderer: 4 个测试
 
 ---
 

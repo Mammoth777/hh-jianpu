@@ -82,8 +82,9 @@ export function createLayout(score: Score, config: Partial<LayoutConfig> = {}): 
           y: noteY,
           note,
           measureNumber: measure.number,
-          // 直接从 AST 中读取 beamGroup（如果音符有的话）
+          // 直接从 AST 中读取 beamGroup 和 slurGroup
           beamGroup: note.type === 'note' ? note.beamGroup : undefined,
+          slurGroup: note.type === 'note' ? note.slurGroup : undefined,
         };
 
         notePositions.push(notePos);

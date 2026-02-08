@@ -15,6 +15,8 @@ export type TokenType =
   | 'DOT'            // . 后缀（附点）
   | 'SHARP'          // #
   | 'FLAT'           // b (在音符前)
+  | 'SLUR_START'     // ( 圆滑线开始
+  | 'SLUR_END'       // ) 圆滑线结束
   | 'NEWLINE'        // 换行
   | 'EOF'            // 结束
   | 'ERROR';         // 无法识别
@@ -141,6 +143,30 @@ export function tokenize(source: string): Token[] {
       else if (ch === '|') {
         tokens.push({ 
           type: 'BARLINE', 
+          value: ch, 
+          line, 
+          column, 
+          offset: pos + i,
+          hasSpaceBefore: hasSpaceBeforeNext 
+        });
+        hasSpaceBeforeNext = false;
+      }
+      // 圆滑线开始
+      else if (ch === '(') {
+        tokens.push({ 
+          type: 'SLUR_START', 
+          value: ch, 
+          line, 
+          column, 
+          offset: pos + i,
+          hasSpaceBefore: hasSpaceBeforeNext 
+        });
+        hasSpaceBeforeNext = false;
+      }
+      // 圆滑线结束
+      else if (ch === ')') {
+        tokens.push({ 
+          type: 'SLUR_END', 
           value: ch, 
           line, 
           column, 
