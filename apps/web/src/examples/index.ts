@@ -53,6 +53,16 @@ export const EXAMPLES = {
 
 ..1 ..2 ..3 ..4 | .5 .6 .7 .1 | 1 2 3 4 | 5 6 7 '1 | '2 '3 '4 '5 | ''1 ''2 ''3 ''4 |`,
   },
+
+  breathDemo: {
+    name: '换气记号示例',
+    source: `标题: 换气记号示例
+调号: C
+拍号: 4/4
+速度: 120
+
+1 2 3 4 | 5 6 v 0_6_ 7 | '1 '2 v '3 '4 | 5 4 3 2 | 1 - v - |`,
+  },
 } as const;
 
 export type ExampleKey = keyof typeof EXAMPLES;

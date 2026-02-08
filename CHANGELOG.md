@@ -7,6 +7,23 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- 🎵 **换气记号（Breath Mark）** - 使用 `v` 或 `V` 标记换气位置
+  - **语法**: `1 2 3 4 | 5 v 6 7`
+  - **用途**: 标记演唱或管乐演奏时的换气位置
+  - **特性**: 
+    - 不占用时间，仅作为视觉标记
+    - 支持大小写 `v` 或 `V`
+    - 可以放置在小节内任意位置
+  - **实现**:
+    - Tokenizer: 识别 `v`/`V` 为 BREATH token
+    - Types: 新增 Breath 接口
+    - Parser: 解析换气符号到 AST
+    - Player: 换气符号不参与时间计算
+    - UI: 渲染为 v 形标记
+  - **测试**: 新增换气符号解析测试
+  - **示例**: 新增"换气记号示例"曲谱
+
 ### Fixed
 - 🐛 **修复多个八度标记** - 支持高两个八度（`''1`）和低两个八度（`..1`）
   - **问题**: tokenizer 只检查下一个字符是否为数字，导致连续的 `'` 或 `.` 无法被识别

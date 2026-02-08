@@ -23,6 +23,8 @@ function getNoteDisplay(note: NoteElement): string {
       return '0';
     case 'tie':
       return '—';
+    case 'breath':
+      return 'v';
     default:
       return '?';
   }
@@ -35,6 +37,30 @@ const NoteView: React.FC<NoteViewProps> = ({ note, x, y, index, isActive, isPlay
   let fillColor = '#1C1917'; // ink
   if (isActive) fillColor = '#2563EB'; // highlight
   else if (isPlayed) fillColor = '#94A3B8'; // played
+
+  // 换气符号特殊渲染
+  if (note.type === 'breath') {
+    return (
+      <g
+        className="score-breath"
+        onClick={() => onClick?.(index)}
+        style={{ cursor: 'pointer' }}
+      >
+        <text
+          x={x}
+          y={y - 8}
+          textAnchor="middle"
+          dominantBaseline="central"
+          fontFamily="'JetBrains Mono', monospace"
+          fontSize={20}
+          fontWeight={600}
+          fill={fillColor}
+        >
+          v
+        </text>
+      </g>
+    );
+  }
 
   return (
     <g

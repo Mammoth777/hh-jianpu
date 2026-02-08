@@ -17,6 +17,7 @@ export type TokenType =
   | 'FLAT'           // b (在音符前)
   | 'SLUR_START'     // ( 圆滑线开始
   | 'SLUR_END'       // ) 圆滑线结束
+  | 'BREATH'         // v 换气记号
   | 'NEWLINE'        // 换行
   | 'EOF'            // 结束
   | 'ERROR';         // 无法识别
@@ -264,6 +265,18 @@ export function tokenize(source: string): Token[] {
           });
           hasSpaceBeforeNext = false;
         }
+      }
+      // 换气记号
+      else if (ch === 'v' || ch === 'V') {
+        tokens.push({ 
+          type: 'BREATH', 
+          value: ch, 
+          line, 
+          column, 
+          offset: pos + i,
+          hasSpaceBefore: hasSpaceBeforeNext 
+        });
+        hasSpaceBeforeNext = false;
       }
       // 其它字符忽略或标记错误
       else {

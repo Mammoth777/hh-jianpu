@@ -291,6 +291,17 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                     圆滑线支持跨小节：<code className="bg-gray-100 px-2 py-1 rounded">(1 2 | 3 4)</code>
                   </p>
                 </div>
+
+                {/* 换气记号 */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">9. 换气记号（Breath）</h4>
+                  <p className="text-sm text-gray-700 mb-2">
+                    使用 <code className="bg-gray-100 px-2 py-1 rounded">v</code> 或 <code className="bg-gray-100 px-2 py-1 rounded">V</code> 标记换气位置
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    示例：<code className="bg-gray-100 px-2 py-1 rounded">1 2 3 4 | 5 v 6 7</code>
+                  </p>
+                </div>
               </div>
             </section>
 

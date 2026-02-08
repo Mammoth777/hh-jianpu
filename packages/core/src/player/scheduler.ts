@@ -58,6 +58,11 @@ export function noteToFrequency(note: Note, keyOffset: number): number {
  * 计算音符的持续时间（以拍为单位）
  */
 function durationInBeats(note: NoteElement): number {
+  // 换气符号不占用时间
+  if (note.type === 'breath') {
+    return 0;
+  }
+
   const baseDuration = note.duration.base;
   // base: 1=全音符(4拍), 2=二分(2拍), 4=四分(1拍), 8=八分(0.5拍), 16=十六分(0.25拍)
   let beats = 4 / baseDuration;

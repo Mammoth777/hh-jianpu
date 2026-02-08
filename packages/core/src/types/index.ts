@@ -76,8 +76,13 @@ export interface Tie {
   duration: Duration;
 }
 
+/** 换气记号 */
+export interface Breath {
+  type: 'breath';
+}
+
 /** 音符组内元素 */
-export type NoteElement = Note | Rest | Tie;
+export type NoteElement = Note | Rest | Tie | Breath;
 
 // ---- 小节与曲谱 ----
 

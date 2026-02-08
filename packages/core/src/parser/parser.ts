@@ -11,6 +11,7 @@ import type {
   Note,
   Rest,
   Tie,
+  Breath,
   Duration,
   KeyName,
   TimeSignature,
@@ -128,6 +129,15 @@ function parseBody(tokens: Token[]): { measures: Measure[]; errors: ParseError[]
           duration: { base: 4, dots: 0 },
         };
         currentNotes.push(tie);
+        i++;
+        break;
+      }
+
+      case 'BREATH': {
+        const breath: Breath = {
+          type: 'breath',
+        };
+        currentNotes.push(breath);
         i++;
         break;
       }

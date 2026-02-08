@@ -125,6 +125,23 @@ describe('Parser', () => {
     expect(notes[3].type).toBe('tie');
   });
 
+  it('should parse breath marks', () => {
+    const source = `调号: C
+拍号: 4/4
+速度: 120
+
+1 2 v 3 4 |`;
+
+    const result = parse(source);
+    const notes = result.score!.measures[0].notes;
+    
+    expect(notes[0].type).toBe('note');
+    expect(notes[1].type).toBe('note');
+    expect(notes[2].type).toBe('breath');
+    expect(notes[3].type).toBe('note');
+    expect(notes[4].type).toBe('note');
+  });
+
   it('should parse underlines (eighth notes)', () => {
     const source = `调号: C
 拍号: 4/4
