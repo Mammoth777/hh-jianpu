@@ -175,22 +175,21 @@ export function tokenize(source: string): Token[] {
         });
         hasSpaceBeforeNext = false;
       }
-      // 高八度（'）在数字后
+      // 高八度（'）在数字前（前缀）
       else if (ch === "'") {
-        tokens.push({ 
-          type: 'OCTAVE_UP', 
-          value: ch, 
-          line, 
-          column, 
-          offset: pos + i,
-          hasSpaceBefore: hasSpaceBeforeNext 
-        });
-        hasSpaceBeforeNext = false;
+        const nextCh = i + 1 < bodyLine.length ? bodyLine[i + 1] : '';
+        if (nextCh >= '1' && nextCh <= '7') {
+          tokens.push({ 
+            type: 'OCTAVE_UP', 
+            value: ch, 
+            line, 
+            column, 
+            offset: pos + i,
+            hasSpaceBefore: hasSpaceBeforeNext 
+          });
+          hasSpaceBeforeNext = false;
+        }
       }
-      // 低八度（'）在数字前 - 暂不支持，用点号代替
-      // else if (ch === "'" && i + 1 < bodyLine.length && bodyLine[i + 1] >= '1' && bodyLine[i + 1] <= '7') {
-      //   tokens.push({ type: 'OCTAVE_DOWN', value: ch, line, column, offset: pos + i });
-      // }
       // 减时线
       else if (ch === '_') {
         tokens.push({ 

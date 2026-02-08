@@ -43,7 +43,7 @@ describe('Parser', () => {
 拍号: 4/4
 速度: 120
 
-1 2 3' 4' |`;
+1 2 '3 '4 |`;
 
     const result = parse(source);
     const notes = result.score!.measures[0].notes;
@@ -111,7 +111,7 @@ describe('Parser', () => {
 拍号: 4/4
 速度: 120
 
-1 2 3 4 | 5 6 7 1' |`;
+1 2 3 4 | 5 6 7 '1 |`;
 
     const result = parse(source);
     expect(result.score?.measures).toHaveLength(2);

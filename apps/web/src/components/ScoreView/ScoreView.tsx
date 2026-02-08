@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useState } from 'react';
 import { createLayout } from '@as-nmn/core';
-import type { Score } from '@as-nmn/core';
+import type { Score, NotePosition } from '@as-nmn/core';
 import MeasureView from './MeasureView';
 
 interface ScoreViewProps {
@@ -120,8 +120,8 @@ const ScoreView: React.FC<ScoreViewProps> = ({
 };
 
 // 辅助函数：渲染圆滑线
-function renderSlurs(allNotes: typeof import('@as-nmn/core').NotePosition[], currentNoteIndex: number) {
-  const slurGroups = new Map<number, typeof allNotes>();
+function renderSlurs(allNotes: NotePosition[], currentNoteIndex: number) {
+  const slurGroups = new Map<number, NotePosition[]>();
   
   // 收集所有圆滑线组
   allNotes.forEach(note => {

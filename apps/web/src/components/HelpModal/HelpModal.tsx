@@ -117,10 +117,10 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                     </thead>
                     <tbody>
                       {[
-                        ["'", '高八度', "1'"],
-                        ["''", '高两个八度', "1''"],
-                        ['.', '低八度', '1.'],
-                        ['..', '低两个八度', '1..'],
+                        ["'", '高八度（前缀）', "'1"],
+                        ["''", '高两个八度（前缀）', "''1"],
+                        ['.', '低八度（前缀）', '.1'],
+                        ['..', '低两个八度（前缀）', '..1'],
                       ].map(([symbol, desc, example]) => (
                         <tr key={symbol}>
                           <td className="border border-gray-300 px-3 py-2 font-mono">{symbol}</td>
@@ -130,7 +130,7 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                       ))}
                     </tbody>
                   </table>
-                  <p className="text-sm text-gray-600 mt-2">示例：<code className="bg-gray-100 px-2 py-1 rounded">1.. 1. 1 1' 1''</code></p>
+                  <p className="text-sm text-gray-600 mt-2">示例：<code className="bg-gray-100 px-2 py-1 rounded">..1 .1 1 '1 ''1</code></p>
                 </div>
 
                 {/* 变音记号 */}

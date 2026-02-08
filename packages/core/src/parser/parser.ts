@@ -279,12 +279,15 @@ function parseNote(tokens: Token[], startIndex: number): { note: Note; nextIndex
   let dot = false;
 
   // 检查前置修饰符（必须在调用前检查）
-  // 向前回溯检查低八度点、升降号
+  // 向前回溯检查低八度点、高八度单引号、升降号
   let checkIdx = i - 1;
   while (checkIdx >= 0) {
     const prevToken = tokens[checkIdx];
     if (prevToken.type === 'OCTAVE_DOWN') {
       octave--;
+      checkIdx--;
+    } else if (prevToken.type === 'OCTAVE_UP') {
+      octave++;
       checkIdx--;
     } else if (prevToken.type === 'SHARP') {
       accidental = 'sharp';
@@ -303,12 +306,9 @@ function parseNote(tokens: Token[], startIndex: number): { note: Note; nextIndex
   const pitch = parseInt(tokens[i].value, 10);
   i++;
 
-  // 后置修饰符：高八度、附点
+  // 后置修饰符：附点
   while (i < tokens.length) {
-    if (tokens[i].type === 'OCTAVE_UP') {
-      octave += 1;
-      i++;
-    } else if (tokens[i].type === 'DOT') {
+    if (tokens[i].type === 'DOT') {
       dot = true;
       i++;
     } else {
