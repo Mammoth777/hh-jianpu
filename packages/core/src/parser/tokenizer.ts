@@ -10,7 +10,7 @@ export type TokenType =
   | 'TIE'            // -
   | 'BARLINE'        // |
   | 'OCTAVE_UP'      // ' (高八度标记)
-  | 'OCTAVE_DOWN'    // . 前缀（低八度标记）
+  | 'OCTAVE_DOWN'    // , (低八度标记)
   | 'UNDERLINE'      // _ (减时线)
   | 'DOT'            // . 后缀（附点）
   | 'SHARP'          // #
@@ -297,25 +297,17 @@ export function tokenize(source: string): Token[] {
         });
         hasSpaceBeforeNext = false;
       }
-      // 点号：只有在数字后面时才是低八度标记，否则是 DOT
-      else if (ch === '.') {
-        // 向后查找：跳过连续的点号，检查最后是否为数字
-        let lookAhead = i + 1;
-        while (lookAhead < bodyLine.length && bodyLine[lookAhead] === '.') {
-          lookAhead++;
-        }
-        const nextCh = lookAhead < bodyLine.length ? bodyLine[lookAhead] : '';
-        
-        // 向前查找：检查前面是否有数字（可能跳过其他点号）
+      // 逗号：低八度标记
+      else if (ch === ',') {
+        // 向前查找：检查前面是否有数字（可能跳过其他逗号）
         let lookBehind = i - 1;
-        while (lookBehind >= 0 && bodyLine[lookBehind] === '.') {
+        while (lookBehind >= 0 && bodyLine[lookBehind] === ',') {
           lookBehind--;
         }
         const prevCh = lookBehind >= 0 ? bodyLine[lookBehind] : '';
         
         // 只有在前面是数字时，才是低八度标记
         if (prevCh >= '1' && prevCh <= '7') {
-          // 低八度后缀
           tokens.push({ 
             type: 'OCTAVE_DOWN', 
             value: ch, 
@@ -324,17 +316,20 @@ export function tokenize(source: string): Token[] {
             offset: pos + i,
             hasSpaceBefore: hasSpaceBeforeNext 
           });
-        } else {
-          // 其他情况都是 DOT（可能是下波音标记或附点）
-          tokens.push({ 
-            type: 'DOT', 
-            value: ch, 
-            line, 
-            column, 
-            offset: pos + i,
-            hasSpaceBefore: hasSpaceBeforeNext 
-          });
+          hasSpaceBeforeNext = false;
         }
+        // 否则忽略逗号
+      }
+      // 点号：附点或其他用途（下波音等）
+      else if (ch === '.') {
+        tokens.push({ 
+          type: 'DOT', 
+          value: ch, 
+          line, 
+          column, 
+          offset: pos + i,
+          hasSpaceBefore: hasSpaceBeforeNext 
+        });
         hasSpaceBeforeNext = false;
       }
       // 降号
