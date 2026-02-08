@@ -71,6 +71,16 @@ export const EXAMPLES = {
 速度: 100
 
 ^4__ 5 - - - | ^6_ 5 - - - | ^'1__ 7 - 6 5 | ^3__ 4 - ^2_ 3 - |`,
+  },
+
+  trillDemo: {
+    name: '波音示例',
+    source: `标题: 波音示例
+调号: C
+拍号: 4/4
+速度: 100
+
+~5 - - - | ~~5 - - - | ~.5 - - - | ~'1 - ~6 - |`,
   },} as const;
 
 export type ExampleKey = keyof typeof EXAMPLES;

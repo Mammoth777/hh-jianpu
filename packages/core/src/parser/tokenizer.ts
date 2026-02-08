@@ -19,6 +19,7 @@ export type TokenType =
   | 'SLUR_END'       // ) 圆滑线结束
   | 'BREATH'         // v 换气记号
   | 'GRACE_PREFIX'   // ^ 倚音前缀
+  | 'TRILL'          // ~ 波音记号
   | 'NEWLINE'        // 换行
   | 'EOF'            // 结束
   | 'ERROR';         // 无法识别
@@ -177,15 +178,23 @@ export function tokenize(source: string): Token[] {
         });
         hasSpaceBeforeNext = false;
       }
-      // 高八度（'）在数字前（前缀）
+      // 高八度（'）只能在数字后面
       else if (ch === "'") {
-        // 向后查找：跳过连续的单引号，检查最后是否为数字
+        // 向后查找：跳过连续的单引号
         let lookAhead = i + 1;
         while (lookAhead < bodyLine.length && bodyLine[lookAhead] === "'") {
           lookAhead++;
         }
-        const finalCh = lookAhead < bodyLine.length ? bodyLine[lookAhead] : '';
-        if (finalCh >= '1' && finalCh <= '7') {
+        
+        // 向前查找：检查前面是否有数字（可能跳过其他单引号）
+        let lookBehind = i - 1;
+        while (lookBehind >= 0 && bodyLine[lookBehind] === "'") {
+          lookBehind--;
+        }
+        const prevCh = lookBehind >= 0 ? bodyLine[lookBehind] : '';
+        
+        // 只有在前面是数字时，才是高八度标记
+        if (prevCh >= '1' && prevCh <= '7') {
           tokens.push({ 
             type: 'OCTAVE_UP', 
             value: ch, 
@@ -196,6 +205,7 @@ export function tokenize(source: string): Token[] {
           });
           hasSpaceBeforeNext = false;
         }
+        // 如果不在数字后面，就忽略这个字符（不生成token）
       }
       // 减时线
       else if (ch === '_') {
@@ -221,16 +231,25 @@ export function tokenize(source: string): Token[] {
         });
         hasSpaceBeforeNext = false;
       }
-      // 点号：根据上下文判断是低八度前缀还是附点后缀
+      // 点号：只有在数字后面时才是低八度标记，否则是 DOT
       else if (ch === '.') {
         // 向后查找：跳过连续的点号，检查最后是否为数字
         let lookAhead = i + 1;
         while (lookAhead < bodyLine.length && bodyLine[lookAhead] === '.') {
           lookAhead++;
         }
-        const finalCh = lookAhead < bodyLine.length ? bodyLine[lookAhead] : '';
-        if (finalCh >= '1' && finalCh <= '7') {
-          // 低八度前缀
+        const nextCh = lookAhead < bodyLine.length ? bodyLine[lookAhead] : '';
+        
+        // 向前查找：检查前面是否有数字（可能跳过其他点号）
+        let lookBehind = i - 1;
+        while (lookBehind >= 0 && bodyLine[lookBehind] === '.') {
+          lookBehind--;
+        }
+        const prevCh = lookBehind >= 0 ? bodyLine[lookBehind] : '';
+        
+        // 只有在前面是数字时，才是低八度标记
+        if (prevCh >= '1' && prevCh <= '7') {
+          // 低八度后缀
           tokens.push({ 
             type: 'OCTAVE_DOWN', 
             value: ch, 
@@ -240,7 +259,7 @@ export function tokenize(source: string): Token[] {
             hasSpaceBefore: hasSpaceBeforeNext 
           });
         } else {
-          // 附点后缀
+          // 其他情况都是 DOT（可能是下波音标记或附点）
           tokens.push({ 
             type: 'DOT', 
             value: ch, 
@@ -271,6 +290,18 @@ export function tokenize(source: string): Token[] {
       else if (ch === 'v' || ch === 'V') {
         tokens.push({ 
           type: 'BREATH', 
+          value: ch, 
+          line, 
+          column, 
+          offset: pos + i,
+          hasSpaceBefore: hasSpaceBeforeNext 
+        });
+        hasSpaceBeforeNext = false;
+      }
+      // 波音记号
+      else if (ch === '~') {
+        tokens.push({ 
+          type: 'TRILL', 
           value: ch, 
           line, 
           column, 

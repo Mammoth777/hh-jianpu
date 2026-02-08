@@ -68,6 +68,9 @@ const NoteView: React.FC<NoteViewProps> = ({ note, x, y, index, isActive, isPlay
   const graceOffsetX = isGrace ? -12 : 0; // 左偏更多
   const graceOffsetY = isGrace ? -10 : 0;  // 上偏更多
 
+  // 波音标记
+  const hasTrill = note.type === 'note' && note.trillType;
+
   return (
     <g
       className="score-note"
@@ -85,6 +88,59 @@ const NoteView: React.FC<NoteViewProps> = ({ note, x, y, index, isActive, isPlay
           fill="#2563EB"
           fillOpacity={0.1}
         />
+      )}
+
+      {/* 波音符号（在音符上方） */}
+      {hasTrill && note.type === 'note' && (
+        <>
+          {note.trillType === 'single' && (
+            // 单波音：一个波浪
+            <path
+              d={`M ${x - 10},${y - 22} L ${x - 5},${y - 18} L ${x},${y - 22} L ${x + 5},${y - 18} L ${x + 10},${y - 22}`}
+              stroke={fillColor}
+              strokeWidth="1.5"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity={0.8}
+            />
+          )}
+          {note.trillType === 'double' && (
+            // 复波音：两个波浪
+            <path
+              d={`M ${x - 12},${y - 22} L ${x - 8},${y - 18} L ${x - 4},${y - 22} L ${x},${y - 18} L ${x + 4},${y - 22} L ${x + 8},${y - 18} L ${x + 12},${y - 22}`}
+              stroke={fillColor}
+              strokeWidth="1.5"
+              fill="none"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              opacity={0.8}
+            />
+          )}
+          {note.trillType === 'lower' && (
+            // 下波音：一个波浪加中间垂直线
+            <>
+              <path
+                d={`M ${x - 10},${y - 22} L ${x - 5},${y - 18} L ${x},${y - 22} L ${x + 5},${y - 18} L ${x + 10},${y - 22}`}
+                stroke={fillColor}
+                strokeWidth="1.5"
+                fill="none"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                opacity={0.8}
+              />
+              <line
+                x1={x}
+                y1={y - 26}
+                x2={x}
+                y2={y - 18}
+                stroke={fillColor}
+                strokeWidth="1.5"
+                opacity={0.8}
+              />
+            </>
+          )}
+        </>
       )}
 
       {/* 音符数字 */}

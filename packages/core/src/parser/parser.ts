@@ -171,6 +171,45 @@ function parseBody(tokens: Token[]): { measures: Measure[]; errors: ParseError[]
         const note = noteResult.note;
         // 记录空格信息
         note.hasSpaceBefore = bodyTokens[i]?.hasSpaceBefore || false;
+        
+        // 检查音符前是否有波音标记
+        let trillCount = 0;
+        let hasDotBeforeTrill = false;
+        let checkIdx = i - 1;
+        
+        // 向前查找波音标记
+        // 顺序应该是：NOTE <- [DOT] <- TRILL [TRILL ...]
+        while (checkIdx >= 0) {
+          const prevToken = bodyTokens[checkIdx];
+          if (prevToken.type === 'DOT') {
+            // 遇到点号，记录下来，继续向前找 TRILL
+            if (trillCount === 0) {
+              hasDotBeforeTrill = true;
+            }
+            checkIdx--;
+          } else if (prevToken.type === 'TRILL') {
+            trillCount++;
+            checkIdx--;
+          } else if (prevToken.type === 'OCTAVE_UP' || prevToken.type === 'OCTAVE_DOWN' || 
+                     prevToken.type === 'SHARP' || prevToken.type === 'FLAT') {
+            // 跳过修饰符
+            checkIdx--;
+          } else {
+            break;
+          }
+        }
+        
+        // 设置波音类型
+        if (trillCount > 0) {
+          if (hasDotBeforeTrill) {
+            note.trillType = 'lower'; // 下波音 ~.
+          } else if (trillCount === 1) {
+            note.trillType = 'single'; // 单波音 ~
+          } else {
+            note.trillType = 'double'; // 复波音 ~~
+          }
+        }
+        
         currentNotes.push(note);
         i = noteResult.nextIndex;
         break;
@@ -355,18 +394,12 @@ function parseNote(tokens: Token[], startIndex: number): { note: Note; nextIndex
   let accidental: Note['accidental'] = undefined;
   let dot = false;
 
-  // 检查前置修饰符（必须在调用前检查）
-  // 向前回溯检查低八度点、高八度单引号、升降号
+  // 检查前置修饰符（升降号）
+  // 向前回溯检查升降号
   let checkIdx = i - 1;
   while (checkIdx >= 0) {
     const prevToken = tokens[checkIdx];
-    if (prevToken.type === 'OCTAVE_DOWN') {
-      octave--;
-      checkIdx--;
-    } else if (prevToken.type === 'OCTAVE_UP') {
-      octave++;
-      checkIdx--;
-    } else if (prevToken.type === 'SHARP') {
+    if (prevToken.type === 'SHARP') {
       accidental = 'sharp';
       break;
     } else if (prevToken.type === 'FLAT') {
@@ -383,9 +416,15 @@ function parseNote(tokens: Token[], startIndex: number): { note: Note; nextIndex
   const pitch = parseInt(tokens[i].value, 10);
   i++;
 
-  // 后置修饰符：附点
+  // 后置修饰符：八度标记、附点
   while (i < tokens.length) {
-    if (tokens[i].type === 'DOT') {
+    if (tokens[i].type === 'OCTAVE_UP') {
+      octave++;
+      i++;
+    } else if (tokens[i].type === 'OCTAVE_DOWN') {
+      octave--;
+      i++;
+    } else if (tokens[i].type === 'DOT') {
       dot = true;
       i++;
     } else {

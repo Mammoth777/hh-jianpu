@@ -322,6 +322,26 @@ export const HelpModal: React.FC<HelpModalProps> = ({ isOpen, onClose }) => {
                     支持八度和升降号：<code className="bg-gray-100 px-2 py-1 rounded">^'1__ 2</code> <code className="bg-gray-100 px-2 py-1 rounded">^#4_ 5</code>
                   </p>
                 </div>
+
+                {/* 波音 */}
+                <div>
+                  <h4 className="font-semibold text-gray-800 mb-2">11. 波音（Trill / Mordent）🎶</h4>
+                  <p className="text-sm text-gray-700 mb-2">
+                    使用 <code className="bg-gray-100 px-2 py-1 rounded">~</code> 标记波音装饰
+                  </p>
+                  <p className="text-sm text-gray-700 mb-2">
+                    <strong>单波音/上波音</strong>：<code className="bg-gray-100 px-2 py-1 rounded">~5</code> → 5 = 565
+                  </p>
+                  <p className="text-sm text-gray-700 mb-2">
+                    <strong>复波音</strong>：<code className="bg-gray-100 px-2 py-1 rounded">~~5</code> → 5 = 56565
+                  </p>
+                  <p className="text-sm text-gray-700 mb-2">
+                    <strong>下波音</strong>：<code className="bg-gray-100 px-2 py-1 rounded">~.5</code> → 5 = 545
+                  </p>
+                  <p className="text-sm text-gray-600">
+                    🎶 波音快速演奏主音和相邻音，增加装饰效果
+                  </p>
+                </div>
               </div>
             </section>
 

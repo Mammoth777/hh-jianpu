@@ -43,7 +43,7 @@ describe('Parser', () => {
 拍号: 4/4
 速度: 120
 
-1 2 '3 '4 |`;
+1 2 3' 4' |`;
 
     const result = parse(source);
     const notes = result.score!.measures[0].notes;
@@ -61,7 +61,7 @@ describe('Parser', () => {
 拍号: 4/4
 速度: 120
 
-.7 .6 1 2 |`;
+7. 6. 1 2 |`;
 
     const result = parse(source);
     const notes = result.score!.measures[0].notes;
@@ -77,17 +77,17 @@ describe('Parser', () => {
 拍号: 4/4
 速度: 120
 
-..1 .1 1 '1 ''1 |`;
+1.. 1. 1 1' 1'' |`;
 
     const result = parse(source);
     const notes = result.score!.measures[0].notes;
     
-    // ..1 = 低两个八度
+    // 1.. = 低两个八度
     if (notes[0].type === 'note') {
       expect(notes[0].pitch).toBe(1);
       expect(notes[0].octave).toBe(-2);
     }
-    // .1 = 低一个八度
+    // 1. = 低一个八度
     if (notes[1].type === 'note') {
       expect(notes[1].pitch).toBe(1);
       expect(notes[1].octave).toBe(-1);
@@ -97,7 +97,7 @@ describe('Parser', () => {
       expect(notes[2].pitch).toBe(1);
       expect(notes[2].octave).toBe(0);
     }
-    // '1 = 高一个八度
+    // 1' = 高一个八度
     if (notes[3].type === 'note') {
       expect(notes[3].pitch).toBe(1);
       expect(notes[3].octave).toBe(1);
@@ -147,7 +147,7 @@ describe('Parser', () => {
 拍号: 4/4
 速度: 120
 
-^4 5 ^'1 2 |`;
+^4 5 ^1' 2 |`;
 
     const result = parse(source);
     const notes = result.score!.measures[0].notes;

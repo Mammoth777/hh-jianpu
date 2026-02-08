@@ -147,6 +147,80 @@ export function scheduleNotes(score: Score): ScheduledNote[] {
       let frequency: number | null = null;
       if (note.type === 'note') {
         frequency = noteToFrequency(note, keyOffset);
+        
+        // 波音处理：在主音符之前快速播放相邻音
+        if (note.trillType) {
+          const trillDuration = 0.05; // 每个波音音符50ms
+          const neighborPitch = note.trillType === 'lower' ? note.pitch - 1 : note.pitch + 1;
+          
+          // 创建临时音符对象用于计算相邻音频率
+          const neighborNote: Note = {
+            ...note,
+            pitch: neighborPitch,
+          };
+          const neighborFreq = noteToFrequency(neighborNote, keyOffset);
+          
+          if (note.trillType === 'single') {
+            // 单波音: 主音 -> 上邻音 -> 主音 (565)
+            // 主音1
+            scheduled.push({
+              index: globalIndex,
+              startTime: currentTime - trillDuration * 2,
+              duration: trillDuration,
+              frequency,
+              note,
+            });
+            // 上邻音
+            scheduled.push({
+              index: globalIndex,
+              startTime: currentTime - trillDuration,
+              duration: trillDuration,
+              frequency: neighborFreq,
+              note,
+            });
+            // 主音会在下面正常添加
+          } else if (note.trillType === 'double') {
+            // 复波音: 主音 -> 上邻音 -> 主音 -> 上邻音 -> 主音 (56565)
+            for (let j = 0; j < 2; j++) {
+              // 主音
+              scheduled.push({
+                index: globalIndex,
+                startTime: currentTime - trillDuration * (4 - j * 2),
+                duration: trillDuration,
+                frequency,
+                note,
+              });
+              // 上邻音
+              scheduled.push({
+                index: globalIndex,
+                startTime: currentTime - trillDuration * (3 - j * 2),
+                duration: trillDuration,
+                frequency: neighborFreq,
+                note,
+              });
+            }
+            // 最后一个主音会在下面正常添加
+          } else if (note.trillType === 'lower') {
+            // 下波音: 主音 -> 下邻音 -> 主音 (545)
+            // 主音1
+            scheduled.push({
+              index: globalIndex,
+              startTime: currentTime - trillDuration * 2,
+              duration: trillDuration,
+              frequency,
+              note,
+            });
+            // 下邻音
+            scheduled.push({
+              index: globalIndex,
+              startTime: currentTime - trillDuration,
+              duration: trillDuration,
+              frequency: neighborFreq,
+              note,
+            });
+            // 主音会在下面正常添加
+          }
+        }
       }
 
       scheduled.push({
