@@ -132,7 +132,7 @@ function parseLyrics(lyricsText: string): LyricsSyllable[] {
 }
 
 /**
- * 将歌词关联到小节，检测数量不匹配
+ * 将歌词关联到小节
  * 
  * @param measures 已解析的小节数组
  * @param lyricsTokens 歌词相关 Token 数组 [{LYRICS_MARKER, LYRICS_TEXT}, ...]
@@ -163,28 +163,6 @@ function associateLyricsToMeasures(
   // 将所有歌词合并为一个数组
   const allSyllables: LyricsSyllable[] = [];
   lyricsLines.forEach(({ syllables }) => allSyllables.push(...syllables));
-  
-  // 统计所有小节中的"有效音符"数量（排除休止符、延长线、呼吸记号）
-  let totalEffectiveNotes = 0;
-  measures.forEach(measure => {
-    measure.notes.forEach(note => {
-      if (note.type === 'note' && !note.isGrace) {
-        totalEffectiveNotes++;
-      }
-    });
-  });
-  
-  // 检测数量不匹配
-  if (allSyllables.length !== totalEffectiveNotes) {
-    // 为每个歌词行都添加错误标记
-    lyricsLines.forEach(({ line }) => {
-      errors.push({
-        message: `歌词数量（${allSyllables.length}）与有效音符数量（${totalEffectiveNotes}）不匹配`,
-        position: { line, column: 1, offset: 0 },
-        length: 1,
-      });
-    });
-  }
   
   // 关联歌词到小节
   let syllableIndex = 0;

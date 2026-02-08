@@ -463,21 +463,6 @@ C 一 _ _ 四`;
     expect(lyrics?.[3].text).toBe('四');
   });
 
-  it('should detect lyrics count mismatch', () => {
-    const source = `调号: C
-拍号: 4/4
-速度: 120
-
-1 2 3 4 |
-C 一 二`;
-    
-    const result = parse(source);
-    expect(result.errors.length).toBeGreaterThan(0);
-    expect(result.errors[0].message).toContain('歌词数量');
-    expect(result.errors[0].message).toContain('2');
-    expect(result.errors[0].message).toContain('4');
-  });
-
   it('should associate lyrics with multiple measures', () => {
     const source = `调号: C
 拍号: 4/4
@@ -523,20 +508,6 @@ C 三 四`;
     expect(lyrics).toHaveLength(4);
     expect(lyrics?.[0].text).toBe('一');
     expect(lyrics?.[2].text).toBe('三');
-  });
-
-  it('should parse lyrics with rest notes', () => {
-    const source = `调号: C
-拍号: 4/4
-速度: 120
-
-1 2 3 4 |
-C 一 二 三`;
-    
-    const result = parse(source);
-    // 应该有歌词数量不匹配错误（3个歌词 vs 4个音符）
-    expect(result.errors.length).toBeGreaterThan(0);
-    expect(result.errors[0].message).toContain('歌词数量');
   });
 });
 
