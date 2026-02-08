@@ -51,13 +51,27 @@ export function clearLLMConfig(): void {
 export async function testLLMConnection(config: LLMProviderConfig): Promise<void> {
   const client = createLLMClient(config);
 
-  // 创建一个 1x1 的测试图片（白色像素）
-  const testImage =
-    'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8/5+hHgAHggJ/PchI7wAAAABJRU5ErkJggg==';
+  // 创建一个 100x100 的测试图片（纯白色，满足 API 最小尺寸要求）
+  // 使用 Canvas 生成
+  const canvas = document.createElement('canvas');
+  canvas.width = 100;
+  canvas.height = 100;
+  const ctx = canvas.getContext('2d');
+  if (ctx) {
+    ctx.fillStyle = '#FFFFFF';
+    ctx.fillRect(0, 0, 100, 100);
+    // 添加简单的文字以便识别
+    ctx.fillStyle = '#000000';
+    ctx.font = '20px Arial';
+    ctx.fillText('Test', 30, 50);
+  }
+
+  // 转换为 Base64（移除 data:image/png;base64, 前缀）
+  const base64 = canvas.toDataURL('image/png').split(',')[1];
 
   try {
     await client.recognize({
-      image: testImage,
+      image: base64,
       mimeType: 'image/png',
     });
     // 如果没有抛出错误，说明连接成功
