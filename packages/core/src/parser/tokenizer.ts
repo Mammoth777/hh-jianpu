@@ -20,7 +20,7 @@ export type TokenType =
   | 'BREATH'         // v 换气记号
   | 'GRACE_PREFIX'   // ^ 倚音前缀
   | 'TRILL'          // ~ 波音记号
-  | 'MELODY_MARKER'  // P 旋律标记
+  | 'MELODY_MARKER'  // Q 旋律标记
   | 'LYRICS_MARKER'  // C 歌词标记
   | 'LYRICS_TEXT'    // 歌词内容
   | 'NEWLINE'        // 换行
@@ -99,18 +99,18 @@ export function tokenize(source: string): Token[] {
     column = 1;
     let hasSpaceBeforeNext = false; // 跟踪是否遇到过空格
     
-    // 检测旋律行（P 开头）- 跳过 P 标记但继续解析音符
+    // 检测旋律行（Q 开头）- 跳过 Q 标记但继续解析音符
     let lineContent = bodyLine;
-    if (bodyLine.trim().startsWith('P ') || bodyLine.trim() === 'P') {
+    if (bodyLine.trim().startsWith('Q ') || bodyLine.trim() === 'Q') {
       tokens.push({
         type: 'MELODY_MARKER',
-        value: 'P',
+        value: 'Q',
         line,
         column: 1,
         offset: pos
       });
-      // 移除 P 标记，继续解析剩余内容
-      const pIndex = bodyLine.indexOf('P');
+      // 移除 Q 标记，继续解析剩余内容
+      const pIndex = bodyLine.indexOf('Q');
       lineContent = bodyLine.substring(pIndex + 1).trimStart();
       // 如果 P 后面没有内容，跳到下一行
       if (!lineContent) {
