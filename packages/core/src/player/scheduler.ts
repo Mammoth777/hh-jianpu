@@ -105,7 +105,8 @@ export function scheduleNotes(score: Score): ScheduledNote[] {
 
       // 倚音特殊处理：极短播放时长，从当前时间（主音符开始时间）往前推
       if (note.type === 'note' && note.isGrace) {
-        const graceDuration = 0.05; // 50ms
+        // 短倚音更快，长倚音稍慢
+        const graceDuration = note.graceType === 'short' ? 0.03 : 0.06; // 30ms vs 60ms
         const frequency = noteToFrequency(note, keyOffset);
         
         scheduled.push({

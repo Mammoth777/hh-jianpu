@@ -70,7 +70,7 @@ export const EXAMPLES = {
 拍号: 4/4
 速度: 100
 
-^4 5 - - - | ^6 5 - - - | ^'1 7 - 6 5 | ^3 4 - ^2 3 - |`,
+^4__ 5 - - - | ^6_ 5 - - - | ^'1__ 7 - 6 5 | ^3__ 4 - ^2_ 3 - |`,
   },} as const;
 
 export type ExampleKey = keyof typeof EXAMPLES;

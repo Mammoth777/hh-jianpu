@@ -56,7 +56,10 @@ export interface Note {
   duration: Duration;
   /** 是否附点 */
   dot: boolean;  /** 是否为倚音（装饰音） */
-  isGrace?: boolean;  /** 连音组ID（用于渲染连音线beam），相同ID的音符共享一条横线 */
+  isGrace?: boolean;
+  /** 倚音类型：short=短倚音（单下划线），long=长倚音（无下划线） */
+  graceType?: 'short' | 'long';
+  /** 连音组ID（用于渲染连音线beam），相同ID的音符共享一条横线 */
   beamGroup?: number;
   /** 圆滑线组ID（用于渲染圆滑线slur），相同ID的音符共享一条弧线 */
   slurGroup?: number;

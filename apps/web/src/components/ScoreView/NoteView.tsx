@@ -158,6 +158,34 @@ const NoteView: React.FC<NoteViewProps> = ({ note, x, y, index, isActive, isPlay
         </>
       )}
 
+      {/* 倚音下划线：长倚音单下划线，短倚音双下划线 */}
+      {isGrace && (
+        <>
+          {/* 第一条下划线（所有倚音都有） */}
+          <line
+            x1={x + graceOffsetX - 6}
+            y1={y + graceOffsetY + 8}
+            x2={x + graceOffsetX + 6}
+            y2={y + graceOffsetY + 8}
+            stroke={fillColor}
+            strokeWidth={1}
+            opacity={0.7}
+          />
+          {/* 第二条下划线（仅短倚音有） */}
+          {note.graceType === 'short' && (
+            <line
+              x1={x + graceOffsetX - 6}
+              y1={y + graceOffsetY + 11}
+              x2={x + graceOffsetX + 6}
+              y2={y + graceOffsetY + 11}
+              stroke={fillColor}
+              strokeWidth={1}
+              opacity={0.7}
+            />
+          )}
+        </>
+      )}
+
       {/* 附点 */}
       {note.type === 'note' && note.dot && (
         <circle

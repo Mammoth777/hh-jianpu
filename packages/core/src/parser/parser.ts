@@ -120,10 +120,38 @@ function parseBody(tokens: Token[]): { measures: Measure[]; errors: ParseError[]
         }
         
         if (foundNote) {
+          // 先检查音符后的下划线数量（在 parseNote 消耗它们之前）
+          let peekIndex = noteIndex + 1; // 音符的下一个 token
+          let underlineCount = 0;
+          
+          // 计数连续的下划线
+          while (peekIndex < bodyTokens.length && bodyTokens[peekIndex].type === 'UNDERLINE') {
+            underlineCount++;
+            peekIndex++;
+          }
+          
           const noteResult = parseNote(bodyTokens, noteIndex);
           const note = noteResult.note;
           note.isGrace = true; // 标记为倚音
           note.hasSpaceBefore = bodyTokens[noteIndex]?.hasSpaceBefore || false;
+          
+          // 根据下划线数量判断类型
+          if (underlineCount === 1) {
+            // 单下划线：长倚音
+            note.graceType = 'long';
+          } else if (underlineCount >= 2) {
+            // 双下划线：短倚音
+            note.graceType = 'short';
+          } else {
+            // 无下划线：错误，倚音必须有下划线
+            errors.push({
+              message: `倚音必须有下划线标记：长倚音用 ^音符_ ，短倚音用 ^音符__`,
+              position: { line: token.line, column: token.column, offset: token.offset },
+              length: 1,
+            });
+            note.graceType = 'long'; // 默认为长倚音
+          }
+          
           currentNotes.push(note);
           i = noteResult.nextIndex;
         } else {
