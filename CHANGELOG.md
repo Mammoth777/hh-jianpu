@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.1.2] - 2026-02-08
+
 ### Added
 - 🎵 **歌词（Lyrics）功能** - 支持在简谱下方添加歌词
   - **语法**：

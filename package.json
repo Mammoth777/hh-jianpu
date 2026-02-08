@@ -1,6 +1,6 @@
 {
   "name": "as-nmn",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "private": true,
   "description": "Add Seven - A library for rendering numbered musical notation (jianpu) in web applications",
   "scripts": {
@@ -9,7 +9,8 @@
     "build:core": "pnpm --filter @as-nmn/core build",
     "build:web": "pnpm --filter @as-nmn/web build",
     "lint": "pnpm -r lint",
-    "test": "pnpm -r test"
+    "test": "pnpm -r test",
+    "release": "./scripts/release.sh"
   },
   "keywords": [
     "jianpu",
