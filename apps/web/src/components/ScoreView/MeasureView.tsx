@@ -1,5 +1,5 @@
 import React from 'react';
-import type { MeasureLayout } from '@as-nmn/core';
+import type { MeasureLayout } from '@hh-jianpu/core';
 import NoteView from './NoteView';
 
 interface MeasureViewProps {

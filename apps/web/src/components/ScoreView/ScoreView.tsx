@@ -1,6 +1,6 @@
 import React, { useMemo, useEffect, useState } from 'react';
-import { createLayout } from '@as-nmn/core';
-import type { Score, NotePosition } from '@as-nmn/core';
+import { createLayout } from '@hh-jianpu/core';
+import type { Score, NotePosition } from '@hh-jianpu/core';
 import MeasureView from './MeasureView';
 
 interface ScoreViewProps {

@@ -14,7 +14,7 @@ importers:
 
   apps/web:
     dependencies:
-      '@as-nmn/core':
+      '@hh-jianpu/core':
         specifier: workspace:*
         version: link:../../packages/core
       react:

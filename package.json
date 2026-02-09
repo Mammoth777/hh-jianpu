@@ -1,13 +1,13 @@
 {
-  "name": "as-nmn",
+  "name": "hh-jianpu",
   "version": "0.1.2",
   "private": true,
-  "description": "Add Seven - A library for rendering numbered musical notation (jianpu) in web applications",
+  "description": "A web-based dynamic numbered musical notation (jianpu) editor with AI-powered image recognition",
   "scripts": {
-    "dev": "pnpm --filter @as-nmn/web dev",
-    "build": "pnpm --filter @as-nmn/core build && pnpm --filter @as-nmn/web build",
-    "build:core": "pnpm --filter @as-nmn/core build",
-    "build:web": "pnpm --filter @as-nmn/web build",
+    "dev": "pnpm --filter @hh-jianpu/web dev",
+    "build": "pnpm --filter @hh-jianpu/core build && pnpm --filter @hh-jianpu/web build",
+    "build:core": "pnpm --filter @hh-jianpu/core build",
+    "build:web": "pnpm --filter @hh-jianpu/web build",
     "lint": "pnpm -r lint",
     "test": "pnpm -r test",
     "release": "./scripts/release.sh"

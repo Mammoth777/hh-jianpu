@@ -1,5 +1,5 @@
 import React, { useRef, useEffect } from 'react';
-import type { ParseError } from '@as-nmn/core';
+import type { ParseError } from '@hh-jianpu/core';
 
 interface EditorProps {
   value: string;

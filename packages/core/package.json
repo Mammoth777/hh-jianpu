@@ -1,5 +1,5 @@
 {
-  "name": "@as-nmn/core",
+  "name": "@hh-jianpu/core",
   "version": "0.1.2",
   "description": "Core library for parsing, rendering, and playing numbered musical notation",
   "type": "module",

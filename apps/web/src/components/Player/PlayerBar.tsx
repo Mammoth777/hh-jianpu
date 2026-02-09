@@ -1,5 +1,5 @@
 import React from 'react';
-import type { PlaybackStatus } from '@as-nmn/core';
+import type { PlaybackStatus } from '@hh-jianpu/core';
 
 interface PlayerBarProps {
   status: PlaybackStatus;

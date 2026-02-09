@@ -1,6 +1,6 @@
 import { create } from 'zustand';
-import { parse, Player } from '@as-nmn/core';
-import type { Score, ParseError, PlaybackStatus } from '@as-nmn/core';
+import { parse, Player } from '@hh-jianpu/core';
+import type { Score, ParseError, PlaybackStatus } from '@hh-jianpu/core';
 import { EXAMPLES } from '../examples';
 import {
   recognizeImage,

@@ -3,7 +3,7 @@
  * 功能：清洗和规范化 LLM 返回的文本
  */
 
-import { parse } from '@as-nmn/core';
+import { parse } from '@hh-jianpu/core';
 import type { PostprocessResult } from './types';
 
 /**

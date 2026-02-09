@@ -1,5 +1,5 @@
 import React from 'react';
-import type { NoteElement } from '@as-nmn/core';
+import type { NoteElement } from '@hh-jianpu/core';
 
 interface NoteViewProps {
   note: NoteElement;
