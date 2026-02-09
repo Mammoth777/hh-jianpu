@@ -3,6 +3,8 @@ import react from '@vitejs/plugin-react';
 import path from 'path';
 
 export default defineConfig({
+  // GitHub Pages 部署时使用仓库名作为 base 路径
+  base: process.env.NODE_ENV === 'production' ? '/hh-jianpu/' : '/',
   plugins: [react()],
   resolve: {
     alias: {
