@@ -429,13 +429,16 @@ function assignBeamGroups(measures: Measure[], tokens: Token[]): void {
         const groupStart = i;
         let groupEnd = i;
         
-        // 向后查找连续的相同时值音符（无空格分隔）
+        // 向后查找连续的八分音符及更短音符（无空格分隔，允许不同时值）
         while (groupEnd + 1 < notes.length) {
           const nextNote = notes[groupEnd + 1];
           
-          // 检查下一个音符是否满足连音条件
+          // 检查下一个音符是否满足连音条件：
+          // - 是普通音符
+          // - base >= 8（八分音符及更短，即有减时线）
+          // - 前面没有空格
           if (nextNote.type === 'note' && 
-              nextNote.duration.base === note.duration.base &&
+              nextNote.duration.base >= 8 &&
               !nextNote.hasSpaceBefore) { // 前面没有空格才连接
             groupEnd++;
           } else {
@@ -562,13 +565,16 @@ function parseNote(tokens: Token[], startIndex: number): { note: Note; nextIndex
   i = underlineResult.nextIndex;
 
   // 后置修饰符：八度标记（减时线后）
-  // 支持 5,/ 和 5/, 两种写法
+  // 支持 5,/ 和 5/, 两种写法；也支持附点在减时线后（6/.）
   while (i < tokens.length) {
     if (tokens[i].type === 'OCTAVE_UP') {
       octave++;
       i++;
     } else if (tokens[i].type === 'OCTAVE_DOWN') {
       octave--;
+      i++;
+    } else if (tokens[i].type === 'DOT') {
+      dot = true;
       i++;
     } else {
       break;
