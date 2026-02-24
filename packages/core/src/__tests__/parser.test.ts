@@ -102,24 +102,24 @@ describe('Parser', () => {
       expect(notes[3].pitch).toBe(1);
       expect(notes[3].octave).toBe(1);
     }
-    // ''1 = 高两个八度
+    // 1'' = 高两个八度
     if (notes[4].type === 'note') {
       expect(notes[4].pitch).toBe(1);
       expect(notes[4].octave).toBe(2);
     }
   });
 
-  it('should parse octave markers after underlines', () => {
+  it('should parse octave markers after slash underlines', () => {
     const source = `调号: C
 拍号: 4/4
 速度: 120
 
-5,_ 5_, 5'_ 5_' |`;
+5,/ 5/, 5'/ 5/' |`;
 
     const result = parse(source);
     const notes = result.score!.measures[0].notes;
     
-    // 5,_ 和 5_, 都应该是低八度的八分音符
+    // 5,/ 和 5/, 都应该是低八度的八分音符
     if (notes[0].type === 'note') {
       expect(notes[0].pitch).toBe(5);
       expect(notes[0].octave).toBe(-1);
@@ -130,7 +130,7 @@ describe('Parser', () => {
       expect(notes[1].octave).toBe(-1);
       expect(notes[1].duration.base).toBe(8);
     }
-    // 5'_ 和 5_' 都应该是高八度的八分音符
+    // 5'/ 和 5/' 都应该是高八度的八分音符
     if (notes[2].type === 'note') {
       expect(notes[2].pitch).toBe(5);
       expect(notes[2].octave).toBe(1);
@@ -216,12 +216,12 @@ describe('Parser', () => {
     }
   });
 
-  it('should parse underlines (eighth notes)', () => {
+  it('should parse slashes (eighth notes)', () => {
     const source = `调号: C
 拍号: 4/4
 速度: 120
 
-1_ 2_ 3 4 |`;
+1/ 2/ 3 4 |`;
 
     const result = parse(source);
     const notes = result.score!.measures[0].notes;
@@ -331,6 +331,49 @@ describe('Parser', () => {
       }
     }
   });
+
+  it('should parse dot after underline (6/.) and beam mixed durations (6/.5//)', () => {
+    // 6/. → 附点八分音符（base=8, dot=true）
+    // 5// → 十六分音符（base=16, dot=false）
+    // 两者无空格，应连入同一 beamGroup
+    const source = `调号: C
+拍号: 2/4
+速度: 120
+
+6/.5// 1 |`;
+
+    const result = parse(source);
+    expect(result.errors).toHaveLength(0);
+
+    const notes = result.score!.measures[0].notes;
+
+    // 第一个音符：6，附点八分音符
+    expect(notes[0].type).toBe('note');
+    if (notes[0].type === 'note') {
+      expect(notes[0].pitch).toBe(6);
+      expect(notes[0].duration.base).toBe(8);
+      expect(notes[0].dot).toBe(true);
+    }
+
+    // 第二个音符：5，十六分音符
+    expect(notes[1].type).toBe('note');
+    if (notes[1].type === 'note') {
+      expect(notes[1].pitch).toBe(5);
+      expect(notes[1].duration.base).toBe(16);
+      expect(notes[1].dot).toBe(false);
+    }
+
+    // 两者应属于同一 beamGroup（无空格相邻且均有减时线）
+    if (notes[0].type === 'note' && notes[1].type === 'note') {
+      expect(notes[0].beamGroup).toBeDefined();
+      expect(notes[1].beamGroup).toBe(notes[0].beamGroup);
+    }
+
+    // 第三个音符（1）不在 beamGroup 中
+    if (notes[2].type === 'note') {
+      expect(notes[2].beamGroup).toBeUndefined();
+    }
+  });
 });
 
 describe('Beat Validation', () => {
@@ -400,7 +443,7 @@ describe('Beat Validation', () => {
 拍号: 4/4
 速度: 120
 
-1_ 2_ 3_ 4_ 5_ 6_ 7_ 1'_ |`;
+1/ 2/ 3/ 4/ 5/ 6/ 7/ 1'/ |`;
     
     const result = parse(source);
     expect(result.errors).toHaveLength(0);
@@ -411,7 +454,7 @@ describe('Beat Validation', () => {
 拍号: 4/4
 速度: 120
 
-^3_ 1 2 3 4 |`;
+^3/ 1 2 3 4 |`;
     
     const result = parse(source);
     expect(result.errors).toHaveLength(0);
@@ -518,7 +561,7 @@ C 一 二 三 四 五 六 七 八`;
 拍号: 4/4
 速度: 120
 
-1 ^2_ 3 4 |
+1 ^2/ 3 4 |
 C 一 二 三`;
     
     const result = parse(source);
