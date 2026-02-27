@@ -5,9 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
-
-## [0.2.0] - 2026-02-08
+## [0.2.0] - 2026-02-27
 
 ### Added
 - 📷 **图片识别转简谱功能** - 使用 AI 从图片中识别简谱并转换为可编辑文本
