@@ -124,7 +124,7 @@ echo ""
 
 # 8. 运行测试
 echo -e "${GREEN}🧪 运行测试...${NC}"
-pnpm test -- --run
+cd packages/core && pnpm test -- --run
 
 echo -e "${GREEN}✅ 测试通过${NC}"
 echo ""
