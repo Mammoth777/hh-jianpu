@@ -71,11 +71,11 @@ const EditorPage: React.FC = () => {
               <ImageImportButton onClick={() => setIsImageImportOpen(true)} />
             )}
 
-            {/* 设置 */}
+            {/* 设置（暂时禁用） */}
             <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-barline hover:bg-gray-50 transition-colors"
-              title="设置"
+              disabled
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-barline text-gray-300 cursor-not-allowed"
+              title="暂不可用"
             >
               <span>⚙️</span>
               <span className="hidden sm:inline">设置</span>

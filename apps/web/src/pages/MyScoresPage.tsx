@@ -92,11 +92,11 @@ const MyScoresPage: React.FC = () => {
       <TopBar
         actions={
           <>
-            {/* 设置 */}
+            {/* 设置（暂时禁用） */}
             <button
-              onClick={() => setIsSettingsOpen(true)}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-barline hover:bg-gray-50 bg-white transition-colors"
-              title="设置"
+              disabled
+              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-barline text-gray-300 cursor-not-allowed bg-white"
+              title="暂不可用"
             >
               <span>⚙️</span>
               <span className="hidden sm:inline">设置</span>
