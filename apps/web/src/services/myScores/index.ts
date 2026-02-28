@@ -1,8 +1,21 @@
 /**
- * 我的谱谱 - localStorage 存储服务
+ * 我的谱谱 - 存储服务
+ *
+ * 主存储：localStorage（同步，始终可用）
+ * 副存储：本地文件系统（通过 File System Access API，用户选择目录后启用）
+ *
+ * 策略：所有读写优先走 localStorage 保证速度与兼容性；
+ *       若用户已选择本地目录，每次写入后异步同步一份 JSON 文件到该目录。
  */
 
+import { getActiveDirectoryHandle } from '../storageLocation';
+
 const STORAGE_KEY = 'hh-jianpu-my-scores';
+
+// 文件名合法化（去除特殊字符，保留常用中英文、数字、下划线、短横线）
+function safeFileName(title: string): string {
+  return title.replace(/[^\w\u4e00-\u9fa5\-]/g, '_').slice(0, 64) + '.jsonc';
+}
 
 // ============================================================
 // 数据结构
@@ -45,6 +58,46 @@ function persistMyScores(scores: MyScore[]): void {
   } catch {
     // 忽略存储失败（如隐私模式/空间不足）
   }
+  // 异步同步到文件系统（fire-and-forget）
+  syncToFileSystem(scores);
+}
+
+// ============================================================
+// 文件系统同步
+// ============================================================
+
+
+/**
+ * 将每个曲谱单独写入本地目录，文件名为标题（.json），内容为 JSON 字符串
+ * 若同名则覆盖，若标题为空则跳过
+ */
+async function syncToFileSystem(scores: MyScore[]): Promise<void> {
+  try {
+    const handle = await getActiveDirectoryHandle();
+    if (!handle) return;
+    for (const score of scores) {
+      if (!score.title) continue;
+      const fileName = safeFileName(score.title);
+      const fileHandle = await handle.getFileHandle(fileName, { create: true });
+      const writable = await fileHandle.createWritable();
+      const content = JSON.stringify(score, null, 2);
+      const fullContent = `// 请在 http://hh-jianpu.jinyu.cool/ 中导入使用\n\n${content}`;
+
+      await writable.write(fullContent);
+      await writable.close();
+    }
+  } catch {
+    // 静默忽略：权限变更、目录被删除等情况不中断主流程
+  }
+}
+
+/**
+ * 将当前 localStorage 中的曲谱迁移（导出）到文件系统目录
+ * 通常在用户完成目录选择后调用
+ */
+export async function migrateScoresToFileSystem(): Promise<void> {
+  const scores = loadMyScores();
+  await syncToFileSystem(scores);
 }
 
 /** 创建新曲谱，返回新建条目 */

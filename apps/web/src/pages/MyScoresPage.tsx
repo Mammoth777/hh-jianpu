@@ -1,10 +1,18 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import { EXAMPLES, EXAMPLE_KEYS } from '../examples';
 import { SettingsModal } from '../components/Settings';
 import TopBar from '../components/Layout/TopBar';
 import type { MyScore } from '../services/myScores';
+import { migrateScoresToFileSystem } from '../services/myScores';
+import {
+  getStorageLocation,
+  pickStorageDirectory,
+  getSavedDirectoryHandle,
+  isFileSystemAccessSupported,
+  type StorageLocation,
+} from '../services/storageLocation';
 
 /** 格式化时间戳 */
 function formatTime(ts: number): string {
@@ -22,6 +30,15 @@ const MyScoresPage: React.FC = () => {
   const [renameValue, setRenameValue] = useState('');
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+
+  // ---- 存储位置 ----
+  const [storageLocation, setStorageLocation] = useState<StorageLocation>({ type: 'localStorage' });
+  const [isChangingStorage, setIsChangingStorage] = useState(false);
+  const [storageError, setStorageError] = useState<string | null>(null);
+
+  useEffect(() => {
+    getStorageLocation().then(setStorageLocation);
+  }, []);
 
   // ---- 重命名 ----
   const handleRenameStart = useCallback((score: MyScore) => {
@@ -77,6 +94,35 @@ const MyScoresPage: React.FC = () => {
     newScore();
     navigate('/edit');
   }, [newScore, navigate]);
+
+  // ---- 更改存储位置 ----
+  const handleChangeStorage = useCallback(async () => {
+    setStorageError(null);
+    if (!isFileSystemAccessSupported()) {
+      setStorageError('您的浏览器不支持本地文件系统访问，请使用 Chrome 86+ 或 Edge 86+ 浏览器');
+      return;
+    }
+    setIsChangingStorage(true);
+    try {
+      // 加载已有句柄，让 picker 默认定位到当前目录
+      const currentHandle = await getSavedDirectoryHandle();
+      const location = await pickStorageDirectory(currentHandle);
+      // 迁移现有数据到新目录
+      await migrateScoresToFileSystem();
+      setStorageLocation(location);
+    } catch (e) {
+      const err = e as Error;
+      if (err.name === 'AbortError') {
+        // 用户主动取消，不报错
+      } else if (err.message === 'NOT_SUPPORTED') {
+        setStorageError('您的浏览器不支持本地文件系统访问，请使用 Chrome 86+ 或 Edge 86+ 浏览器');
+      } else {
+        setStorageError('更改存储位置失败，请重试');
+      }
+    } finally {
+      setIsChangingStorage(false);
+    }
+  }, []);
 
   // ---- 加载示例 ----
   const handleLoadExample = useCallback(
@@ -148,14 +194,51 @@ const MyScoresPage: React.FC = () => {
 
           {/* 我的谱谱区 */}
           <section>
-            <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3">
-              我的谱谱
-              {myScores.length > 0 && (
-                <span className="ml-2 text-xs normal-case font-normal text-gray-400">
-                  共 {myScores.length} 首
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider">
+                我的谱谱
+                {myScores.length > 0 && (
+                  <span className="ml-2 text-xs normal-case font-normal text-gray-400">
+                    共 {myScores.length} 首
+                  </span>
+                )}
+              </h2>
+              <div className="flex items-center gap-2">
+                <span
+                  className="text-xs text-gray-300 select-none hidden sm:inline"
+                  title={
+                    storageLocation.type === 'localStorage'
+                      ? '数据存储在浏览器 localStorage 中'
+                      : `已同步至本地目录「${storageLocation.directoryName}」\n（受浏览器安全限制，仅可显示目录名，不含完整路径）`
+                  }
+                >
+                  {storageLocation.type === 'localStorage'
+                    ? '浏览器缓存(默认)'
+                    : `📁 ${storageLocation.directoryName}`}
                 </span>
-              )}
-            </h2>
+                <button
+                  onClick={handleChangeStorage}
+                  disabled={isChangingStorage}
+                  className="text-xs text-gray-400 hover:text-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
+                  title="更改数据存储位置（需要 Chrome / Edge 86+ 支持）"
+                >
+                  {isChangingStorage ? '选择中…' : '更改存储位置'}
+                </button>
+              </div>
+            </div>
+            {storageError && (
+              <div className="mb-3 px-3 py-2 text-xs text-orange-600 bg-orange-50 border border-orange-200 rounded-lg flex items-start gap-2">
+                <span className="flex-shrink-0 mt-0.5">⚠️</span>
+                <span>{storageError}</span>
+                <button
+                  onClick={() => setStorageError(null)}
+                  className="ml-auto flex-shrink-0 text-orange-400 hover:text-orange-600"
+                  aria-label="关闭"
+                >
+                  ✕
+                </button>
+              </div>
+            )}
 
             {myScores.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-16 gap-3 bg-white border border-dashed border-gray-200 rounded-lg text-gray-400">
