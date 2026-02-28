@@ -4,6 +4,7 @@
 
 import React, { useEffect, useRef } from 'react';
 import type { ParseError } from '@hh-jianpu/core';
+import { AUTO_SAVE_DELAY_MS } from '../../config';
 
 import { EditorView, lineNumbers, highlightActiveLine, keymap, hoverTooltip } from '@codemirror/view';
 import { EditorState, StateEffect, StateField, RangeSetBuilder } from '@codemirror/state';
@@ -172,12 +173,19 @@ interface EditorProps {
   value: string;
   onChange: (value: string) => void;
   parseErrors?: ParseError[];
+  isAutoSaving?: boolean;
+  lastSavedAt?: Date | null;
+}
+
+/** 将自动保存间隔为可读字符串，如 "1秒" 或 "1000ms" */
+function formatDelay(ms: number): string {
+  return ms >= 1000 ? `${ms / 1000}秒` : `${ms}ms`;
 }
 
 /**
  * 简谱文本编辑器（CodeMirror 6）
  */
-const Editor: React.FC<EditorProps> = ({ value, onChange, parseErrors = [] }) => {
+const Editor: React.FC<EditorProps> = ({ value, onChange, parseErrors = [], isAutoSaving = false, lastSavedAt = null }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   // 记录上一次由内部变更产生的值，避免 value prop 变化时重复写回 EditorView
@@ -232,9 +240,21 @@ const Editor: React.FC<EditorProps> = ({ value, onChange, parseErrors = [] }) =>
       {/* 标题栏 */}
       <div className="text-xs text-played px-3 py-2 border-b border-barline select-none flex items-center justify-between flex-shrink-0">
         <span>简谱源码</span>
-        {parseErrors.length > 0 && (
-          <span className="text-error">{parseErrors.length} 个错误</span>
-        )}
+        <span className="flex items-center gap-2">
+          {/* 自动保存状态 */}
+          {isAutoSaving ? (
+            <span className="text-gray-400 animate-pulse">保存中…</span>
+          ) : lastSavedAt ? (
+            <span className="text-gray-400 opacity-60">
+              已自动保存
+              <span className="ml-1 opacity-70">(每{formatDelay(AUTO_SAVE_DELAY_MS)})</span>
+            </span>
+          ) : null}
+          {/* 解析错误数量 */}
+          {parseErrors.length > 0 && (
+            <span className="text-error">{parseErrors.length} 个错误</span>
+          )}
+        </span>
       </div>
 
       {/* CodeMirror 容器：fill 剩余空间 */}

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { parse, Player } from '@hh-jianpu/core';
 import type { Score, ParseError, PlaybackStatus } from '@hh-jianpu/core';
 import { EXAMPLES } from '../examples';
+import { AUTO_SAVE_DELAY_MS } from '../config';
 import {
   recognizeImage,
   loadLLMConfig,
@@ -107,6 +108,7 @@ interface AppState {
   myScores: MyScore[];
   currentScoreId: string | null; // 正在编辑的曲谱 ID（null 表示加载自示例或未保存）
   isAutoSaving: boolean;
+  lastSavedAt: Date | null; // 最近一次自动保存完成的时间
 
   // 操作
   play: () => Promise<void>;
@@ -197,10 +199,11 @@ export const useStore = create<AppState>((set, get) => {
           currentScoreId: newScoreId,
           myScores: loadMyScores(),
           isAutoSaving: false,
+          lastSavedAt: new Date(),
           ...(scoreTempo ? { tempo: scoreTempo } : {}),
         });
         savePersistedState(buildPersistedState(s, scoreTempo ?? get().tempo, get().playDelay, newScoreId));
-      }, 300);
+      }, AUTO_SAVE_DELAY_MS);
     },
 
     setSourceImmediate: (s: string) => {
@@ -223,6 +226,7 @@ export const useStore = create<AppState>((set, get) => {
     myScores: loadMyScores(),
     currentScoreId: initialCurrentScoreId,
     isAutoSaving: false,
+    lastSavedAt: null,
 
     mode: 'edit',
     setMode: (m: ViewMode) => {

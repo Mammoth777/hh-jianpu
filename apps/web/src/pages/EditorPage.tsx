@@ -34,6 +34,7 @@ const EditorPage: React.FC = () => {
     setPlayDelay,
     currentScoreId,
     loadMyScore,
+    lastSavedAt,
   } = useStore();
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -120,7 +121,7 @@ const EditorPage: React.FC = () => {
         {mode === 'edit' ? (
           /* ===== 编辑模式 ===== */
           <ResizablePanels
-            left={<Editor value={source} onChange={setSource} parseErrors={parseErrors} />}
+            left={<Editor value={source} onChange={setSource} parseErrors={parseErrors} isAutoSaving={isAutoSaving} lastSavedAt={lastSavedAt} />}
             right={
               score ? (
                 <div className="h-full flex flex-col">
