@@ -29,6 +29,9 @@ const EditorPage: React.FC = () => {
     play,
     pause,
     stop,
+    playDelay,
+    countdownValue,
+    setPlayDelay,
     currentScoreId,
     loadMyScore,
   } = useStore();
@@ -174,10 +177,13 @@ const EditorPage: React.FC = () => {
               status={playbackStatus}
               tempo={tempo}
               isLoading={isLoading}
+              playDelay={playDelay}
+              countdownValue={countdownValue}
               onPlay={play}
               onPause={pause}
               onStop={stop}
               onTempoChange={setTempo}
+              onPlayDelayChange={setPlayDelay}
             />
           </div>
         )}

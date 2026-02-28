@@ -29,6 +29,7 @@ const STORAGE_KEY = 'hh-jianpu-state';
 interface PersistedState {
   source: string;
   tempo: number;
+  playDelay: number;
   currentScoreId: string | null;
 }
 
@@ -48,6 +49,16 @@ function savePersistedState(state: PersistedState): void {
   } catch {
     // 存储空间不足等情况静默忽略
   }
+}
+
+/** 构造持久化状态对象（补全 playDelay 默认值） */
+function buildPersistedState(
+  source: string,
+  tempo: number,
+  playDelay: number,
+  currentScoreId: string | null
+): PersistedState {
+  return { source, tempo, playDelay, currentScoreId };
 }
 
 /** 从解析结果或源文本提取标题 */
@@ -77,6 +88,12 @@ interface AppState {
   tempo: number;
   isLoading: boolean; // 音频加载状态
   setTempo: (bpm: number) => void;
+
+  // 播放延迟（倒计时）
+  playDelay: number;      // 用户设置的延迟秒数（0 = 不延迟）
+  countdownValue: number; // 当前倒计时剩余秒数（0 = 未在倒计时）
+  setPlayDelay: (seconds: number) => void;
+  cancelCountdown: () => void;
 
   // 播放器实例
   player: Player;
@@ -118,6 +135,8 @@ function parseSource(source: string): { score: Score | null; parseErrors: ParseE
 
 // 防抖定时器
 let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+// 倒计时定时器
+let countdownTimer: ReturnType<typeof setInterval> | null = null;
 
 export const useStore = create<AppState>((set, get) => {
   const player = new Player();
@@ -141,6 +160,8 @@ export const useStore = create<AppState>((set, get) => {
   const initialParse = parseSource(initialSource);
   // tempo 优先从曲谱元数据读取，其次是 localStorage，最后默认 120
   const initialTempo = initialParse.score?.metadata?.tempo ?? persisted.tempo ?? 120;
+  // playDelay 从 localStorage 读取，默认 0
+  const initialPlayDelay = persisted.playDelay ?? 0;
 
   return {
     source: initialSource,
@@ -178,7 +199,7 @@ export const useStore = create<AppState>((set, get) => {
           isAutoSaving: false,
           ...(scoreTempo ? { tempo: scoreTempo } : {}),
         });
-        savePersistedState({ source: s, tempo: scoreTempo ?? get().tempo, currentScoreId: newScoreId });
+        savePersistedState(buildPersistedState(s, scoreTempo ?? get().tempo, get().playDelay, newScoreId));
       }, 300);
     },
 
@@ -192,7 +213,7 @@ export const useStore = create<AppState>((set, get) => {
       set({ source: s, score, parseErrors, ...(scoreTempo ? { tempo: scoreTempo } : {}) });
       // setSourceImmediate 用于加载示例/已存曲谱，不触发自动保存流程
       const currentId = get().currentScoreId;
-      savePersistedState({ source: s, tempo: scoreTempo ?? get().tempo, currentScoreId: currentId });
+      savePersistedState(buildPersistedState(s, scoreTempo ?? get().tempo, get().playDelay, currentId));
     },
 
     score: initialParse.score,
@@ -218,7 +239,21 @@ export const useStore = create<AppState>((set, get) => {
     setTempo: (bpm: number) => {
       set({ tempo: bpm });
       get().player.setTempo(bpm);
-      savePersistedState({ source: get().source, tempo: bpm, currentScoreId: get().currentScoreId });
+      savePersistedState(buildPersistedState(get().source, bpm, get().playDelay, get().currentScoreId));
+    },
+
+    playDelay: initialPlayDelay,
+    countdownValue: 0,
+    setPlayDelay: (seconds: number) => {
+      set({ playDelay: seconds });
+      savePersistedState(buildPersistedState(get().source, get().tempo, seconds, get().currentScoreId));
+    },
+    cancelCountdown: () => {
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+      }
+      set({ countdownValue: 0 });
     },
 
     player,
@@ -229,17 +264,46 @@ export const useStore = create<AppState>((set, get) => {
     ocrError: null,
 
     play: async () => {
-      const { score, player } = get();
+      const { score, player, playDelay } = get();
       if (!score) return;
-      try {
-        set({ isLoading: true });
-        player.loadScore(score);
-        player.setTempo(get().tempo);
-        await player.play();
-      } catch (error) {
-        console.error('播放失败:', error);
-      } finally {
-        set({ isLoading: false });
+
+      // 如果正在倒计时，取消倒计时（切换为取消行为）
+      if (get().countdownValue > 0) {
+        get().cancelCountdown();
+        return;
+      }
+
+      /** 实际开始音频播放 */
+      const startAudio = async () => {
+        try {
+          set({ isLoading: true });
+          player.loadScore(get().score!);
+          player.setTempo(get().tempo);
+          await player.play();
+        } catch (error) {
+          console.error('播放失败:', error);
+        } finally {
+          set({ isLoading: false });
+        }
+      };
+
+      if (playDelay > 0) {
+        // 启动倒计时
+        set({ countdownValue: playDelay });
+        countdownTimer = setInterval(() => {
+          const current = get().countdownValue;
+          if (current <= 1) {
+            // 倒计时结束，开始播放
+            clearInterval(countdownTimer!);
+            countdownTimer = null;
+            set({ countdownValue: 0 });
+            void startAudio();
+          } else {
+            set({ countdownValue: current - 1 });
+          }
+        }, 1000);
+      } else {
+        await startAudio();
       }
     },
 
@@ -248,6 +312,12 @@ export const useStore = create<AppState>((set, get) => {
     },
 
     stop: () => {
+      // 同时取消倒计时
+      if (countdownTimer) {
+        clearInterval(countdownTimer);
+        countdownTimer = null;
+        set({ countdownValue: 0 });
+      }
       get().player.stop();
     },
 
@@ -257,7 +327,7 @@ export const useStore = create<AppState>((set, get) => {
         // 切换到示例时重置 currentScoreId，下次编辑会自动创建新曲谱
         set({ currentScoreId: null });
         get().setSourceImmediate(example.source);
-        savePersistedState({ source: example.source, tempo: get().tempo, currentScoreId: null });
+        savePersistedState(buildPersistedState(example.source, get().tempo, get().playDelay, null));
       }
     },
 
@@ -328,7 +398,7 @@ export const useStore = create<AppState>((set, get) => {
       if (!found) return;
       set({ currentScoreId: id });
       get().setSourceImmediate(found.source);
-      savePersistedState({ source: found.source, tempo: get().tempo, currentScoreId: id });
+      savePersistedState(buildPersistedState(found.source, get().tempo, get().playDelay, id));
     },
 
     deleteScore: (id: string) => {
@@ -336,7 +406,7 @@ export const useStore = create<AppState>((set, get) => {
       const updated = loadMyScores();
       if (get().currentScoreId === id) {
         set({ currentScoreId: null, myScores: updated });
-        savePersistedState({ source: get().source, tempo: get().tempo, currentScoreId: null });
+        savePersistedState(buildPersistedState(get().source, get().tempo, get().playDelay, null));
       } else {
         set({ myScores: updated });
       }
@@ -351,7 +421,7 @@ export const useStore = create<AppState>((set, get) => {
       set({ currentScoreId: null });
       const emptySource = '标题: 未命名曲谱\n调号: C\n拍号: 4/4\n速度: 120\n\n';
       get().setSourceImmediate(emptySource);
-      savePersistedState({ source: emptySource, tempo: get().tempo, currentScoreId: null });
+      savePersistedState(buildPersistedState(emptySource, get().tempo, get().playDelay, null));
     },
 
     refreshMyScores: () => {
