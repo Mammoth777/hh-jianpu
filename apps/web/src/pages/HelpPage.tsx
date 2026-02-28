@@ -234,8 +234,13 @@ const HelpPage: React.FC = () => {
             <div className="mb-6">
               <h4 className="font-semibold text-gray-700 mb-3 flex items-center gap-2">
                 <span className="bg-cyan-500 text-white px-2 py-0.5 rounded text-sm">6</span>
-                元信息（文件开头）
+                元信息（文件开头，使用 --- 包裹）
               </h4>
+              <div className="bg-gray-50 border border-gray-300 rounded p-3 mb-3">
+                <p className="text-sm text-gray-600">
+                  元信息区域使用 YAML frontmatter 格式，以 <code className="font-mono">---</code> 开始和结束
+                </p>
+              </div>
               <table className="w-full border-collapse border border-gray-300 text-sm">
                 <thead className="bg-gray-50">
                   <tr>
@@ -280,9 +285,11 @@ const HelpPage: React.FC = () => {
             <h3 className="text-xl font-bold mb-4 text-gray-800">🎵 完整示例</h3>
             <div className="bg-gray-50 border border-gray-300 rounded-lg p-4">
               <pre className="text-sm font-mono text-gray-800 overflow-x-auto">
-{`标题: 小星星
+{`---
+标题: 小星星
 速度: 80
 拍号: 4/4
+---
 
 P 1 1 5 5 | 6 6 5 - |
 C 一 闪 一 闪 亮 晶 晶 -

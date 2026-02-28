@@ -423,7 +423,7 @@ export const useStore = create<AppState>((set, get) => {
 
     newScore: () => {
       set({ currentScoreId: null });
-      const emptySource = '标题: 未命名曲谱\n调号: C\n拍号: 4/4\n速度: 120\n\n';
+      const emptySource = `---\n标题：未命名曲谱\n调号：C\n拍号：4/4\n速度：120\n---\n\n`;
       get().setSourceImmediate(emptySource);
       savePersistedState(buildPersistedState(emptySource, get().tempo, get().playDelay, null));
     },

@@ -3,6 +3,7 @@
 // ============================================================
 
 export type TokenType =
+  | 'FRONTMATTER_SEPARATOR' // --- (YAML frontmatter separator)
   | 'METADATA_KEY'   // 标题:, 调号:, 拍号:, 速度:
   | 'METADATA_VALUE' // 元信息值
   | 'NOTE'           // 1-7
@@ -38,7 +39,7 @@ export interface Token {
 }
 
 /** 元信息关键字映射 */
-const METADATA_KEYS = new Set(['标题', '调号', '拍号', '速度', 'title', 'key', 'time', 'tempo']);
+const METADATA_KEYS = new Set(['标题', '调号', '拍号', '速度', '作曲', '作词', '备注', 'title', 'key', 'time', 'tempo', 'composer', 'lyricist']);
 
 /**
  * 将简谱源文本分词为 Token 数组
@@ -53,41 +54,131 @@ export function tokenize(source: string): Token[] {
   const lines = source.split('\n');
   let bodyStartLine = 0;
 
-  // 解析元信息头
-  for (let i = 0; i < lines.length; i++) {
-    const lineText = lines[i].trim();
-    if (lineText === '') {
-      if (tokens.some(t => t.type === 'METADATA_KEY')) {
-        bodyStartLine = i + 1;
+  // 检查是否使用 YAML frontmatter 格式 (以 --- 开头)
+  const isFrontmatterFormat = lines[0] && lines[0].trim() === '---';
+
+  if (isFrontmatterFormat) {
+    // 解析 YAML frontmatter 格式
+    tokens.push({
+      type: 'FRONTMATTER_SEPARATOR',
+      value: '---',
+      line: 1,
+      column: 1,
+      offset: 0,
+    });
+    pos += lines[0].length + 1;
+    line = 2;
+
+    // 查找结束的 ---
+    let frontmatterEndLine = -1;
+    for (let i = 1; i < lines.length; i++) {
+      if (lines[i].trim() === '---') {
+        frontmatterEndLine = i;
         break;
       }
-      continue;
     }
 
-    const metaMatch = lineText.match(/^([\u4e00-\u9fa5a-zA-Z]+)\s*[:：]\s*(.+)$/);
-    if (metaMatch) {
-      const key = metaMatch[1].toLowerCase();
-      if (METADATA_KEYS.has(key) || METADATA_KEYS.has(metaMatch[1])) {
-        tokens.push({
-          type: 'METADATA_KEY',
-          value: metaMatch[1],
-          line: i + 1,
-          column: 1,
-          offset: pos,
-        });
-        tokens.push({
-          type: 'METADATA_VALUE',
-          value: metaMatch[2].trim(),
-          line: i + 1,
-          column: metaMatch[1].length + 2,
-          offset: pos + metaMatch[1].length + 1,
-        });
-        bodyStartLine = i + 1;
+    // 解析 frontmatter 内容
+    if (frontmatterEndLine > 1) {
+      for (let i = 1; i < frontmatterEndLine; i++) {
+        const lineText = lines[i];
+        const trimmedLine = lineText.trim();
+        
+        if (trimmedLine === '' || trimmedLine.startsWith('#')) {
+          // 空行或注释，跳过
+          pos += lines[i].length + 1;
+          line++;
+          continue;
+        }
+
+        const metaMatch = trimmedLine.match(/^([\u4e00-\u9fa5a-zA-Z]+)\s*[:：]\s*(.+)$/);
+        if (metaMatch) {
+          const key = metaMatch[1];
+          const lowerKey = key.toLowerCase();
+          if (METADATA_KEYS.has(lowerKey)) {
+            // 计算 key 在原始行中的位置
+            const keyStartCol = lineText.indexOf(key) + 1;
+            const keyOffset = pos + lineText.indexOf(key);
+            
+            tokens.push({
+              type: 'METADATA_KEY',
+              value: key,
+              line: i + 1,
+              column: keyStartCol,
+              offset: keyOffset,
+            });
+
+            // 计算 value 在原始行中的位置
+            const valueStartIdx = trimmedLine.indexOf(metaMatch[2]);
+            const valueStartCol = lineText.indexOf(trimmedLine) + valueStartIdx + 1;
+            const valueOffset = pos + lineText.indexOf(trimmedLine) + valueStartIdx;
+
+            tokens.push({
+              type: 'METADATA_VALUE',
+              value: metaMatch[2].trim(),
+              line: i + 1,
+              column: valueStartCol,
+              offset: valueOffset,
+            });
+          }
+        }
+        
+        pos += lines[i].length + 1;
+        line++;
+      }
+
+      // 添加结束的 ---
+      tokens.push({
+        type: 'FRONTMATTER_SEPARATOR',
+        value: '---',
+        line: frontmatterEndLine + 1,
+        column: 1,
+        offset: pos,
+      });
+      pos += lines[frontmatterEndLine].length + 1;
+      bodyStartLine = frontmatterEndLine + 1;
+      line = bodyStartLine + 1;
+    } else {
+      // 未找到结束的 ---，从第一行后开始
+      bodyStartLine = 1;
+    }
+  } else {
+    // 解析旧格式（无 --- 包裹）
+    for (let i = 0; i < lines.length; i++) {
+      const lineText = lines[i].trim();
+      if (lineText === '') {
+        if (tokens.some(t => t.type === 'METADATA_KEY')) {
+          bodyStartLine = i + 1;
+          break;
+        }
+        continue;
+      }
+
+      const metaMatch = lineText.match(/^([\u4e00-\u9fa5a-zA-Z]+)\s*[:：]\s*(.+)$/);
+      if (metaMatch) {
+        const key = metaMatch[1].toLowerCase();
+        if (METADATA_KEYS.has(key) || METADATA_KEYS.has(metaMatch[1])) {
+          tokens.push({
+            type: 'METADATA_KEY',
+            value: metaMatch[1],
+            line: i + 1,
+            column: 1,
+            offset: pos,
+          });
+          tokens.push({
+            type: 'METADATA_VALUE',
+            value: metaMatch[2].trim(),
+            line: i + 1,
+            column: metaMatch[1].length + 2,
+            offset: pos + metaMatch[1].length + 1,
+          });
+          bodyStartLine = i + 1;
+        } else {
+          break;
+        }
       } else {
         break;
       }
-    } else {
-      break;
     }
   }
 

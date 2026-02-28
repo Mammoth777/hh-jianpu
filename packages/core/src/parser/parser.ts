@@ -704,6 +704,22 @@ function validateMeasureBeats(
 export function parse(source: string): ParseResult {
   try {
     const tokens = tokenize(source);
+
+    // 强制要求使用 YAML frontmatter 格式
+    const hasFrontmatter = tokens.some(t => t.type === 'FRONTMATTER_SEPARATOR');
+    if (!hasFrontmatter) {
+      return {
+        score: null,
+        errors: [
+          {
+            message: '元信息必须使用 YAML frontmatter 格式，以 --- 开始和结束。例如：\\n---\\n标题：小星星\\n调号：C\\n拍号：4/4\\n速度：120\\n---',
+            position: { line: 1, column: 1, offset: 0 },
+            length: 0,
+          },
+        ],
+      };
+    }
+
     const metadata = parseMetadata(tokens);
     const { measures, errors: parseErrors } = parseBody(tokens);
 

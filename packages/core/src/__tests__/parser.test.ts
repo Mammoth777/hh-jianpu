@@ -3,10 +3,12 @@ import { parse } from '../parser/index';
 
 describe('Parser', () => {
   it('should parse basic metadata', () => {
-    const source = `标题：测试曲
+    const source = `---
+标题：测试曲
 调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 |`;
 
@@ -20,9 +22,11 @@ describe('Parser', () => {
   });
 
   it('should parse notes correctly', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 |`;
 
@@ -39,9 +43,11 @@ describe('Parser', () => {
   });
 
   it('should parse high octave notes', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3' 4' |`;
 
@@ -57,9 +63,11 @@ describe('Parser', () => {
   });
 
   it('should parse low octave notes', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 7, 6, 1 2 |`;
 
@@ -73,9 +81,11 @@ describe('Parser', () => {
   });
 
   it('should parse multiple octave markers', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1,, 1, 1 1' 1'' |`;
 
@@ -110,9 +120,11 @@ describe('Parser', () => {
   });
 
   it('should parse octave markers after slash underlines', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 5,/ 5/, 5'/ 5/' |`;
 
@@ -144,9 +156,11 @@ describe('Parser', () => {
   });
 
   it('should parse rests and ties', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 0 5 - |`;
 
@@ -160,9 +174,11 @@ describe('Parser', () => {
   });
 
   it('should parse breath marks', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 v 3 4 |`;
 
@@ -177,9 +193,11 @@ describe('Parser', () => {
   });
 
   it('should parse grace notes', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 ^4 5 ^1' 2 |`;
 
@@ -217,9 +235,11 @@ describe('Parser', () => {
   });
 
   it('should parse slashes (eighth notes)', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1/ 2/ 3 4 |`;
 
@@ -235,9 +255,11 @@ describe('Parser', () => {
   });
 
   it('should parse multiple measures', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 | 5 6 7 '1 |`;
 
@@ -248,9 +270,11 @@ describe('Parser', () => {
   });
 
   it('should parse slur groups within single measure', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 (1 2 3) 4 |`;
 
@@ -271,9 +295,11 @@ describe('Parser', () => {
   });
 
   it('should parse slur groups across measures', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 (1 2 | 3 4) 5 |`;
 
@@ -306,9 +332,11 @@ describe('Parser', () => {
   });
 
   it('should parse multiple slur groups in one line', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 (1 2) (3 4) |`;
 
@@ -337,10 +365,11 @@ describe('Parser', () => {
     // 6/. → 附点八分音符（base=8, dot=true）
     // 5// → 十六分音符（base=16, dot=false）
     // 两者无空格，应连入同一 beamGroup
-    const source = `调号: C
-拍号: 2/4
-速度: 120
-
+    const source = `---
+调号：C
+拍号：2/4
+速度：120
+---
 6/.5// 1 |`;
 
     const result = parse(source);
@@ -379,9 +408,11 @@ describe('Parser', () => {
 
 describe('Beat Validation', () => {
   it('should validate correct 4/4 measure', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 |`;
 
@@ -390,9 +421,11 @@ describe('Beat Validation', () => {
   });
 
   it('should detect too many beats in 4/4', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 5 |`;
 
@@ -404,9 +437,11 @@ describe('Beat Validation', () => {
   });
 
   it('should detect too few beats in 4/4', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 |`;
 
@@ -418,9 +453,11 @@ describe('Beat Validation', () => {
   });
 
   it('should validate 3/4 measures correctly', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：3/4
 速度：120
+---
 
 1 2 3 | 4 5 6 |`;
 
@@ -429,9 +466,11 @@ describe('Beat Validation', () => {
   });
 
   it('should handle ties correctly in beat calculation', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 - - - |`;
 
@@ -440,9 +479,11 @@ describe('Beat Validation', () => {
   });
 
   it('should handle eighth notes correctly', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1/ 2/ 3/ 4/ 5/ 6/ 7/ 1'/ |`;
 
@@ -451,9 +492,11 @@ describe('Beat Validation', () => {
   });
 
   it('should ignore grace notes in beat calculation', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 ^3/ 1 2 3 4 |`;
 
@@ -462,9 +505,11 @@ describe('Beat Validation', () => {
   });
 
   it('should ignore breath marks in beat calculation', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 v 3 4 |`;
 
@@ -473,9 +518,11 @@ describe('Beat Validation', () => {
   });
 
   it('should validate multiple measures', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 | 5 6 | 1 2 3 4 |`;
 
@@ -487,9 +534,11 @@ describe('Beat Validation', () => {
 
 describe('Lyrics Parsing', () => {
   it('should parse basic lyrics', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 |
 C 一 二 三 四`;
@@ -503,9 +552,11 @@ C 一 二 三 四`;
   });
 
   it('should parse grouped lyrics', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 |
 C (我的) 二 三 四`;
@@ -521,9 +572,11 @@ C (我的) 二 三 四`;
   });
 
   it('should parse placeholder lyrics', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 |
 C 一 _ _ 四`;
@@ -542,9 +595,11 @@ C 一 _ _ 四`;
   });
 
   it('should associate lyrics with multiple measures', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 | 5 6 7 1' |
 C 一 二 三 四 五 六 七 八`;
@@ -558,9 +613,11 @@ C 一 二 三 四 五 六 七 八`;
   });
 
   it('should skip grace notes when associating lyrics', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 ^2/ 3 4 |
 C 一 二 三`;
@@ -572,9 +629,11 @@ C 一 二 三`;
   });
 
   it('should handle multiple lyrics lines', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 |
 C 一 二
@@ -589,9 +648,11 @@ C 三 四`;
   });
 
   it('should handle empty lyrics line', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 |
 C`;
@@ -609,9 +670,11 @@ C`;
 
 describe('Accidentals', () => {
   it('should parse sharp notes', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 #1 #2 #3 #4 |`;
 
@@ -630,9 +693,11 @@ describe('Accidentals', () => {
   });
 
   it('should parse flat notes', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 b7 b6 b3 - |`;
 
@@ -651,9 +716,11 @@ b7 b6 b3 - |`;
   });
 
   it('should parse sharp with octave markers', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 #1' - - - |`;
 
@@ -669,9 +736,11 @@ b7 b6 b3 - |`;
   });
 
   it('should parse sharp with underline', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 #1/ #2/ #3/ #4/ #5/ #6/ #7/ #1'/ |`;
 
@@ -703,9 +772,11 @@ b7 b6 b3 - |`;
   });
 
   it('should parse combined sharp with octave and underline', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 #4'/ #4'/ #4'/ #4'/ #5'/ #5'/ #5'/ #5'/ |`;
 
@@ -723,9 +794,11 @@ b7 b6 b3 - |`;
 
   // Skip: parser拍数计算与音符时值不匹配，这是parser的已知bug
   it.skip('should parse combined flat with octave and underline', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 b3,/ b3,/ b3,/ b3,/ b3/ b3/ b3/ b3/ |`;
 
@@ -748,9 +821,11 @@ b3,/ b3,/ b3,/ b3,/ b3/ b3/ b3/ b3/ |`;
 
 describe('Grace Notes', () => {
   it('should parse long grace note (single underline)', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 ^3/ 5 - - - |`;
 
@@ -767,9 +842,11 @@ describe('Grace Notes', () => {
   });
 
   it('should parse short grace note (double underline)', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 ^3// 5 - - - |`;
 
@@ -785,9 +862,11 @@ describe('Grace Notes', () => {
   });
 
   it('should parse grace note with octave marker', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 ^1/ 2 - - - |`;
 
@@ -803,9 +882,11 @@ describe('Grace Notes', () => {
   });
 
   it('should parse grace note with sharp', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 ^#4/ 5 - - - |`;
 
@@ -822,9 +903,11 @@ describe('Grace Notes', () => {
   });
 
   it('should parse multiple grace notes in sequence', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 ^1/ ^2/ 3 - - - |`;
 
@@ -846,9 +929,11 @@ describe('Grace Notes', () => {
   });
 
   it('should report error for grace note without underline', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 ^3 5 - - - |`;
 
@@ -865,9 +950,11 @@ describe('Grace Notes', () => {
 
 describe('Trills', () => {
   it('should parse single trill (~)', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 ~5 - - - |`;
 
@@ -881,9 +968,11 @@ describe('Trills', () => {
   });
 
   it('should parse double trill (~~)', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 ~~5 - - - |`;
 
@@ -897,9 +986,11 @@ describe('Trills', () => {
   });
 
   it('should parse lower trill (~.)', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 ~.5 - - - |`;
 
@@ -913,9 +1004,11 @@ describe('Trills', () => {
   });
 
   it('should parse trill with octave marker', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 ~5' - - - |`;
 
@@ -930,9 +1023,11 @@ describe('Trills', () => {
   });
 
   it('should parse trill with underline', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 ~5/ 5/ 6/ 7/ 1'/ 2'/ 3'/ 4'/ |`;
 
@@ -953,9 +1048,11 @@ describe('Trills', () => {
 
 describe('Dotted Notes', () => {
   it('should parse dotted quarter note', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1. 2 3/ 4 |`;
 
@@ -970,9 +1067,11 @@ describe('Dotted Notes', () => {
   });
 
   it('should parse dotted eighth note', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1/. 2/. 3/. 4 5/ 6// |`;
 
@@ -988,9 +1087,11 @@ describe('Dotted Notes', () => {
   });
 
   it('should parse dotted note before underline (6./)', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 6./ 5// 1 2 3 |`;
 
@@ -1005,9 +1106,11 @@ describe('Dotted Notes', () => {
   });
 
   it('should parse dotted note after underline (6/.)', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 6/. 5// 1 2 3 |`;
 
@@ -1029,9 +1132,11 @@ describe('Dotted Notes', () => {
 describe('Beam Groups', () => {
   // Skip: parser拍数计算与音符时值不匹配
   it.skip('should group consecutive eighth notes without space', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1/2/3/4/ |`;
 
@@ -1051,9 +1156,11 @@ describe('Beam Groups', () => {
 
   // Skip: parser拍数计算与音符时值不匹配
   it.skip('should not group notes separated by space', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1/ 2/ 3/ 4/ 5/ 6/ 7/ 1'/ |`;
 
@@ -1074,9 +1181,11 @@ describe('Beam Groups', () => {
   });
 
   it('should not group quarter notes (no underline)', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 |`;
 
@@ -1093,9 +1202,11 @@ describe('Beam Groups', () => {
   });
 
   it('should group mixed duration eighth notes', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：2/4
 速度：120
+---
 
 6/.5// 5/ 6/ |`;
 
@@ -1124,8 +1235,10 @@ describe('Edge Cases and Error Handling', () => {
   });
 
   it('should handle source with only metadata', () => {
-    const source = `标题：测试
-调号：C`;
+    const source = `---
+标题：测试
+调号：C
+---`;
     const result = parse(source);
     expect(result.score).toBeNull();
     expect(result.errors.length).toBeGreaterThan(0);
@@ -1133,9 +1246,11 @@ describe('Edge Cases and Error Handling', () => {
   });
 
   it('should handle tie at the beginning of measure', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 - 1 2 3 |`;
 
@@ -1145,9 +1260,11 @@ describe('Edge Cases and Error Handling', () => {
   });
 
   it('should handle multiple consecutive barlines', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 || 3 4 |`;
 
@@ -1158,9 +1275,11 @@ describe('Edge Cases and Error Handling', () => {
 
   // Skip: parser拍数计算与音符时值不匹配
   it.skip('should handle rest with underline', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 0/ 0// 1 - - |`;
 
@@ -1179,9 +1298,11 @@ describe('Edge Cases and Error Handling', () => {
   });
 
   it('should handle breath marks in measure', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 v 2 V 3 - |`;
 
@@ -1197,9 +1318,11 @@ describe('Edge Cases and Error Handling', () => {
   });
 
   it('should handle grace notes not affecting beat count', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 ^3/ 1 2 3 4 |`;
 
@@ -1208,9 +1331,11 @@ describe('Edge Cases and Error Handling', () => {
   });
 
   it('should handle breath marks not affecting beat count', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 v 3 4 |`;
 
@@ -1219,9 +1344,11 @@ describe('Edge Cases and Error Handling', () => {
   });
 
   it('should handle melisma (multiple characters for one note)', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 |
 C (我的) 二 三 四`;
@@ -1234,9 +1361,11 @@ C (我的) 二 三 四`;
   });
 
   it('should handle placeholder in lyrics', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 |
 C 一 _ _ 四`;
@@ -1249,9 +1378,11 @@ C 一 _ _ 四`;
   });
 
   it('should handle different time signatures', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：3/4
 速度：120
+---
 
 1 2 3 | 4 5 6 |`;
 
@@ -1262,9 +1393,11 @@ C 一 _ _ 四`;
   });
 
   it('should handle 6/8 time signature', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：6/8
 速度：120
+---
 
 1/ 2/ 3/ 4/ 5/ 6/ |`;
 
@@ -1273,9 +1406,11 @@ C 一 _ _ 四`;
   });
 
   it('should handle 2/2 time signature', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：2/2
 速度：120
+---
 
 1 - 2 - |`;
 
@@ -1284,9 +1419,11 @@ C 一 _ _ 四`;
   });
 
   it('should report error for too many beats', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 3 4 5 |`;
 
@@ -1296,9 +1433,11 @@ C 一 _ _ 四`;
   });
 
   it('should report error for too few beats', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 1 2 |`;
 
@@ -1308,9 +1447,11 @@ C 一 _ _ 四`;
   });
 
   it('should handle Q melody marker', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 Q 1 2 3 4 |`;
 
@@ -1320,9 +1461,11 @@ Q 1 2 3 4 |`;
   });
 
   it('should handle empty Q line', () => {
-    const source = `调号：C
+    const source = `---
+调号：C
 拍号：4/4
 速度：120
+---
 
 Q
 1 2 3 4 |`;

@@ -18,10 +18,11 @@ export function postprocess(rawText: string): PostprocessResult {
   text = text.replace(/```\n?/g, '');
 
   // 2. 去除多余的解释性文字（保留格式化的简谱内容）
-  // 通常 LLM 会在开头或结尾添加解释，但格式化的简谱应该以"标题:"或数字开始
+  // 通常 LLM 会在开头或结尾添加解释，但格式化的简谱应该以"---"或"标题:"或数字开始
   const lines = text.split('\n');
   const startIndex = lines.findIndex(
     (line) =>
+      line.trim() === '---' ||
       line.trim().startsWith('标题:') ||
       line.trim().startsWith('调号:') ||
       /^[0-7\|\-\s#b'._P]+$/.test(line.trim())
