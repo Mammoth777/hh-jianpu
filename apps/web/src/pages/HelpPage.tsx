@@ -1,6 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/Layout/TopBar';
+import ButtonTip from '../components/ui/ButtonTip';
 
 const HelpPage: React.FC = () => {
   const navigate = useNavigate();
@@ -16,13 +17,17 @@ const HelpPage: React.FC = () => {
           </span>
         }
         actions={
-          <button
+          <ButtonTip
+            tipContent="开始编辑曲谱"
+            position="bottom"
             onClick={() => navigate('/edit')}
-            className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+            variant="primary"
+            size="md"
+            className="flex items-center gap-1.5"
           >
             <span>✏️</span>
             <span>去编辑</span>
-          </button>
+          </ButtonTip>
         }
       />
 

@@ -1,5 +1,6 @@
 import React, { useState, useCallback } from 'react';
 import type { MyScore } from '../../services/myScores';
+import ButtonTip from '../ui/ButtonTip';
 
 interface MyScoresModalProps {
   isOpen: boolean;
@@ -99,22 +100,28 @@ export const MyScoresModal: React.FC<MyScoresModalProps> = ({
         <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200">
           <h2 className="text-xl font-bold text-gray-800">🎼 我的谱谱</h2>
           <div className="flex items-center gap-2">
-            <button
+            <ButtonTip
+              tipContent="创建新曲谱"
+              position="bottom"
               onClick={handleNew}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+              variant="primary"
+              size="md"
             >
               <span>＋</span>
               <span>新建曲谱</span>
-            </button>
-            <button
+            </ButtonTip>
+            <ButtonTip
+              tipContent="关闭"
+              position="bottom"
               onClick={onClose}
+              variant="ghost"
               className="p-2 hover:bg-gray-100 rounded-full transition-colors"
               title="关闭"
             >
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
               </svg>
-            </button>
+            </ButtonTip>
           </div>
         </div>
 
@@ -176,42 +183,60 @@ export const MyScoresModal: React.FC<MyScoresModalProps> = ({
                       {isConfirmingDelete ? (
                         <>
                           <span className="text-xs text-red-500 mr-1">确认删除？</span>
-                          <button
+                          <ButtonTip
+                            tipContent="确认删除"
+                            position="top"
                             onClick={() => handleDeleteConfirm(score.id)}
-                            className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                            variant="danger"
+                            size="sm"
                           >
                             删除
-                          </button>
-                          <button
+                          </ButtonTip>
+                          <ButtonTip
+                            tipContent="取消删除"
+                            position="top"
                             onClick={() => setDeleteConfirmId(null)}
-                            className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+                            variant="secondary"
+                            size="sm"
                           >
                             取消
-                          </button>
+                          </ButtonTip>
                         </>
                       ) : (
                         <>
-                          <button
+                          <ButtonTip
+                            tipContent="打开编辑"
+                            position="top"
                             onClick={() => handleOpenScore(score.id)}
-                            className="px-2 py-1 text-xs text-blue-600 border border-blue-200 rounded hover:bg-blue-50 transition-colors"
+                            variant="ghost"
+                            size="sm"
+                            className="text-blue-600 border border-blue-200 hover:bg-blue-50"
                             title="打开编辑"
                           >
                             打开
-                          </button>
-                          <button
+                          </ButtonTip>
+                          <ButtonTip
+                            tipContent="重命名"
+                            position="top"
                             onClick={() => handleRenameStart(score)}
-                            className="px-2 py-1 text-xs text-gray-600 border border-gray-200 rounded hover:bg-gray-100 transition-colors"
+                            variant="secondary"
+                            size="sm"
+                            className="text-gray-600 border border-gray-200 hover:bg-gray-100"
                             title="重命名"
                           >
                             重命名
-                          </button>
-                          <button
+                          </ButtonTip>
+                          <ButtonTip
+                            tipContent="删除"
+                            position="top"
                             onClick={() => handleDeleteClick(score.id)}
-                            className="px-2 py-1 text-xs text-red-500 border border-red-200 rounded hover:bg-red-50 transition-colors"
+                            variant="ghost"
+                            size="sm"
+                            className="text-red-500 border border-red-200 hover:bg-red-50"
                             title="删除"
                           >
                             删除
-                          </button>
+                          </ButtonTip>
                         </>
                       )}
                     </div>

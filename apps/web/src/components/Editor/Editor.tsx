@@ -5,6 +5,7 @@
 import React, { useEffect, useRef } from 'react';
 import type { ParseError } from '@hh-jianpu/core';
 import { AUTO_SAVE_DELAY_MS } from '../../config';
+import TextTip from '../ui/TextTip';
 
 import { EditorView, lineNumbers, highlightActiveLine, keymap, hoverTooltip } from '@codemirror/view';
 import { EditorState, StateEffect, StateField, RangeSetBuilder } from '@codemirror/state';
@@ -243,16 +244,32 @@ const Editor: React.FC<EditorProps> = ({ value, onChange, parseErrors = [], isAu
         <span className="flex items-center gap-2">
           {/* 自动保存状态 */}
           {isAutoSaving ? (
-            <span className="text-gray-400 animate-pulse">保存中…</span>
+            <TextTip
+              tipContent={`每${formatDelay(AUTO_SAVE_DELAY_MS)}自动保存`}
+              color="#9CA3AF"
+              position="top"
+            >
+              保存中…
+            </TextTip>
           ) : lastSavedAt ? (
-            <span className="text-gray-400 opacity-60">
+            <TextTip
+              tipContent={`每${formatDelay(AUTO_SAVE_DELAY_MS)}自动保存`}
+              color="#16A34A"
+              position="top"
+              className="opacity-70"
+            >
               已自动保存
-              <span className="ml-1 opacity-70">(每{formatDelay(AUTO_SAVE_DELAY_MS)})</span>
-            </span>
+            </TextTip>
           ) : null}
           {/* 解析错误数量 */}
           {parseErrors.length > 0 && (
-            <span className="text-error">{parseErrors.length} 个错误</span>
+            <TextTip
+              tipContent="点击编辑器查看详细信息"
+              color="#DC2626"
+              position="top"
+            >
+              {parseErrors.length} 个错误
+            </TextTip>
           )}
         </span>
       </div>

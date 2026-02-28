@@ -4,6 +4,7 @@ import { useStore } from '../store/useStore';
 import { EXAMPLES, EXAMPLE_KEYS } from '../examples';
 import { SettingsModal } from '../components/Settings';
 import TopBar from '../components/Layout/TopBar';
+import ButtonTip from '../components/ui/ButtonTip';
 import type { MyScore } from '../services/myScores';
 import { migrateScoresToFileSystem } from '../services/myScores';
 import {
@@ -149,23 +150,28 @@ const MyScoresPage: React.FC = () => {
             </button>
 
             {/* 帮助 */}
-            <button
+            <ButtonTip
+              tipContent="查看帮助文档"
+              position="bottom"
               onClick={() => navigate('/help')}
+              variant="ghost"
               className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-barline bg-white hover:bg-blue-50 transition-colors text-blue-600"
-              title="帮助"
             >
               <span>❓</span>
               <span className="hidden sm:inline">帮助</span>
-            </button>
+            </ButtonTip>
 
             {/* 新建 */}
-            <button
+            <ButtonTip
+              tipContent="创建新曲谱"
+              position="bottom"
               onClick={handleNew}
-              className="flex items-center gap-1.5 px-4 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
+              variant="primary"
+              size="md"
             >
               <span>＋</span>
               <span>新建曲谱</span>
-            </button>
+            </ButtonTip>
           </>
         }
       />
@@ -180,14 +186,17 @@ const MyScoresPage: React.FC = () => {
             </h2>
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
               {EXAMPLE_KEYS.map((key) => (
-                <button
+                <ButtonTip
                   key={key}
+                  tipContent={`加载示例：${EXAMPLES[key].name}`}
+                  position="top"
                   onClick={() => handleLoadExample(key)}
-                  className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-sm text-left"
+                  variant="ghost"
+                  className="flex items-center gap-2 px-4 py-3 bg-white border border-gray-200 rounded-lg hover:border-blue-300 hover:bg-blue-50 transition-colors text-sm text-left w-full"
                 >
                   <span className="text-base">🎵</span>
                   <span className="text-gray-700 truncate">{EXAMPLES[key].name}</span>
-                </button>
+                </ButtonTip>
               ))}
             </div>
           </section>
@@ -216,27 +225,33 @@ const MyScoresPage: React.FC = () => {
                     ? '浏览器缓存(默认)'
                     : `📁 ${storageLocation.directoryName}`}
                 </span>
-                <button
+                <ButtonTip
+                  tipContent="更改数据存储位置（需要 Chrome / Edge 86+ 支持）"
+                  position="top"
                   onClick={handleChangeStorage}
                   disabled={isChangingStorage}
+                  variant="nude"
+                  size="sm"
                   className="text-xs text-gray-400 hover:text-blue-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed whitespace-nowrap"
-                  title="更改数据存储位置（需要 Chrome / Edge 86+ 支持）"
                 >
                   {isChangingStorage ? '选择中…' : '更改存储位置'}
-                </button>
+                </ButtonTip>
               </div>
             </div>
             {storageError && (
               <div className="mb-3 px-3 py-2 text-xs text-orange-600 bg-orange-50 border border-orange-200 rounded-lg flex items-start gap-2">
                 <span className="flex-shrink-0 mt-0.5">⚠️</span>
                 <span>{storageError}</span>
-                <button
+                <ButtonTip
+                  tipContent="关闭提示"
+                  position="left"
                   onClick={() => setStorageError(null)}
+                  variant="ghost"
                   className="ml-auto flex-shrink-0 text-orange-400 hover:text-orange-600"
                   aria-label="关闭"
                 >
                   ✕
-                </button>
+                </ButtonTip>
               </div>
             )}
 
@@ -245,12 +260,16 @@ const MyScoresPage: React.FC = () => {
                 <span className="text-4xl">🎼</span>
                 <p className="text-sm">还没有保存的曲谱</p>
                 <p className="text-xs">点击"新建曲谱"或在示例基础上编辑后自动保存</p>
-                <button
+                <ButtonTip
+                  tipContent="创建新曲谱"
+                  position="top"
                   onClick={handleNew}
-                  className="mt-2 px-4 py-1.5 text-sm bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors"
+                  variant="primary"
+                  size="md"
+                  className="mt-2"
                 >
                   ＋ 新建曲谱
-                </button>
+                </ButtonTip>
               </div>
             ) : (
               <ul className="space-y-2">
@@ -312,39 +331,47 @@ const MyScoresPage: React.FC = () => {
                             <span className="text-xs text-red-500 mr-1 hidden sm:inline">
                               确认删除？
                             </span>
-                            <button
+                            <ButtonTip
+                              tipContent="确认删除"
+                              position="top"
                               onClick={() => handleDeleteConfirm(score.id)}
-                              className="px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                              variant="danger"
+                              size="sm"
                             >
                               删除
-                            </button>
-                            <button
+                            </ButtonTip>
+                            <ButtonTip
+                              tipContent="取消删除"
+                              position="top"
                               onClick={() => setDeleteConfirmId(null)}
-                              className="px-2 py-1 text-xs border border-gray-300 rounded hover:bg-gray-100 transition-colors"
+                              variant="secondary"
+                              size="sm"
                             >
                               取消
-                            </button>
+                            </ButtonTip>
                           </>
                         ) : (
                           <>
-                            <button
-                              onClick={() => handleOpen(score.id)}
-                              className="px-2 py-1 text-xs text-blue-600 border border-blue-200 rounded hover:bg-blue-50 transition-colors"
-                            >
-                              打开
-                            </button>
-                            <button
+                            <ButtonTip
+                              tipContent="重命名"
+                              position="top"
                               onClick={() => handleRenameStart(score)}
-                              className="px-2 py-1 text-xs text-gray-600 border border-gray-200 rounded hover:bg-gray-100 transition-colors"
+                              variant="ghost"
+                              size="sm"
+                              className="text-gray-600 border border-gray-200 hover:bg-gray-100"
                             >
                               重命名
-                            </button>
-                            <button
+                            </ButtonTip>
+                            <ButtonTip
+                              tipContent="删除"
+                              position="top"
                               onClick={() => handleDeleteClick(score.id)}
-                              className="px-2 py-1 text-xs text-red-500 border border-red-200 rounded hover:bg-red-50 transition-colors"
+                              variant="ghost"
+                              size="sm"
+                              className="text-red-500 border border-red-200 hover:bg-red-50"
                             >
                               删除
-                            </button>
+                            </ButtonTip>
                           </>
                         )}
                       </div>

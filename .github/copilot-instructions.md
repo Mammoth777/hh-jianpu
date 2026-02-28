@@ -380,7 +380,41 @@ function useDebounce<T>(value: T, delay: number): T {
 }
 ```
 
-### 组件组合
+
+### 通用 UI 组件
+
+#### ButtonTip（带悬浮提示的按钮）
+
+用于为按钮添加悬浮提示，支持多种变体和尺寸。
+
+**用法示例：**
+
+```tsx
+<ButtonTip tipContent="播放音乐" onClick={handlePlay} variant="primary">播放</ButtonTip>
+```
+
+**主要 props：**
+- `tipContent`: 悬浮提示内容（必填）
+- `position`: 悬浮提示位置，默认 `bottom`
+- `variant`: 按钮风格，支持 `primary`/`secondary`/`ghost`/`danger`/`nude`
+- `size`: 按钮尺寸，`sm`/`md`/`lg`
+- 其余同原生 `<button>`
+
+#### TextTip（悬浮提示文本）
+
+用于为任意文本添加悬浮提示。
+
+**用法示例：**
+
+```tsx
+<TextTip tipContent="每 30 秒自动保存" color="text-green-600">已自动保存</TextTip>
+```
+
+**主要 props：**
+- `tipContent`: 悬浮提示内容（必填）
+- `position`: 悬浮提示位置，默认 `top`
+- `color`: 文字颜色
+- 其余同 `<span>`
 
 ```typescript
 // ✅ 推荐 - 容器/展示组件分离
