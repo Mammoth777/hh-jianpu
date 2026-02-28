@@ -87,11 +87,13 @@ function durationInBeats(note: NoteElement): number {
 
 /**
  * 将 Score 转换为按时间排序的调度事件序列
+ * @param score - 曲谱 AST
+ * @param tempoOverride - 可选的速度覆盖（BPM），不传则使用曲谱元数据中的速度
  */
-export function scheduleNotes(score: Score): ScheduledNote[] {
+export function scheduleNotes(score: Score, tempoOverride?: number): ScheduledNote[] {
   const scheduled: ScheduledNote[] = [];
   const keyOffset = KEY_OFFSET[score.metadata.key] ?? 0;
-  const bpm = score.metadata.tempo;
+  const bpm = tempoOverride ?? score.metadata.tempo;
   const secondsPerBeat = 60 / bpm;
 
   let currentTime = 0;

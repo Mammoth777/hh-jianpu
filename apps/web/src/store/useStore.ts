@@ -137,9 +137,10 @@ export const useStore = create<AppState>((set, get) => {
   // 初始加载：优先读取 localStorage，没有则用示例
   const persisted = loadPersistedState();
   const initialSource = persisted.source ?? EXAMPLES.twinkle.source;
-  const initialTempo = persisted.tempo ?? 120;
   const initialCurrentScoreId = persisted.currentScoreId ?? null;
   const initialParse = parseSource(initialSource);
+  // tempo 优先从曲谱元数据读取，其次是 localStorage，最后默认 120
+  const initialTempo = initialParse.score?.metadata?.tempo ?? persisted.tempo ?? 120;
 
   return {
     source: initialSource,
@@ -164,23 +165,34 @@ export const useStore = create<AppState>((set, get) => {
           newScoreId = created.id;
         }
 
+        // 如果曲谱元数据里有速度，同步到 store
+        const scoreTempo = score?.metadata?.tempo;
+        if (scoreTempo) {
+          get().player.setTempo(scoreTempo);
+        }
         set({
           score,
           parseErrors,
           currentScoreId: newScoreId,
           myScores: loadMyScores(),
           isAutoSaving: false,
+          ...(scoreTempo ? { tempo: scoreTempo } : {}),
         });
-        savePersistedState({ source: s, tempo: get().tempo, currentScoreId: newScoreId });
+        savePersistedState({ source: s, tempo: scoreTempo ?? get().tempo, currentScoreId: newScoreId });
       }, 300);
     },
 
     setSourceImmediate: (s: string) => {
       const { score, parseErrors } = parseSource(s);
-      set({ source: s, score, parseErrors });
+      // 如果曲谱元数据里有速度，同步到 store
+      const scoreTempo = score?.metadata?.tempo;
+      if (scoreTempo) {
+        player.setTempo(scoreTempo);
+      }
+      set({ source: s, score, parseErrors, ...(scoreTempo ? { tempo: scoreTempo } : {}) });
       // setSourceImmediate 用于加载示例/已存曲谱，不触发自动保存流程
       const currentId = get().currentScoreId;
-      savePersistedState({ source: s, tempo: get().tempo, currentScoreId: currentId });
+      savePersistedState({ source: s, tempo: scoreTempo ?? get().tempo, currentScoreId: currentId });
     },
 
     score: initialParse.score,

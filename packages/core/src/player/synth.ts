@@ -19,6 +19,7 @@ export type StatusChangeCallback = (status: PlaybackStatus) => void;
  */
 export class Player {
   private scheduledNotes: ScheduledNote[] = [];
+  private _score: Score | null = null;  // 保存曲谱，播放时按当前 tempo 重新计算时序
   private synth: any = null; // Tone.Synth
   private tone: any = null;  // Tone module
   private isInitialized = false;
@@ -67,12 +68,12 @@ export class Player {
   }
 
   /**
-   * 加载曲谱
+   * 加载曲谱（仅保存曲谱，播放时按当前 tempo 重新计算时序）
    */
   loadScore(score: Score): void {
     this.stop();
+    this._score = score;
     this._tempo = score.metadata.tempo;
-    this.scheduledNotes = scheduleNotes(score);
   }
 
   /**
@@ -84,6 +85,11 @@ export class Player {
 
     // 确保 AudioContext 已激活（需要用户交互后才能播放）
     await Tone.start();
+
+    // 用当前 tempo 重新计算时序（确保播放前调整 tempo 滑块立即生效）
+    if (this._score) {
+      this.scheduledNotes = scheduleNotes(this._score, this._tempo);
+    }
 
     // 清除之前的调度
     Tone.getTransport().cancel();
