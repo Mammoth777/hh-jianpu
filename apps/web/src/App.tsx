@@ -1,12 +1,12 @@
 import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { HashRouter, Routes, Route, Navigate } from 'react-router-dom';
 import MyScoresPage from './pages/MyScoresPage';
 import EditorPage from './pages/EditorPage';
 import HelpPage from './pages/HelpPage';
 
 const App: React.FC = () => {
   return (
-    <BrowserRouter>
+    <HashRouter>
       <Routes>
         {/* 首页：我的谱谱列表 */}
         <Route path="/" element={<MyScoresPage />} />
@@ -21,7 +21,7 @@ const App: React.FC = () => {
         {/* 其他路由重定向到首页 */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
-    </BrowserRouter>
+    </HashRouter>
   );
 };
 
