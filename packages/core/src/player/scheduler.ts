@@ -98,12 +98,42 @@ export function scheduleNotes(score: Score, tempoOverride?: number): ScheduledNo
 
   let currentTime = 0;
   let globalIndex = 0;
+  let lastScheduledWithFreq: { duration: number } | null = null;
+  let lastSlurGroup: number | undefined;
 
   for (const measure of score.measures) {
     for (let i = 0; i < measure.notes.length; i++) {
       const note = measure.notes[i];
       const beats = durationInBeats(note);
       const durationSec = beats * secondsPerBeat;
+
+      // 圆滑线内连续相同音高：合并时值，不重新发音，但产生静默事件用于 UI 高亮
+      if (
+        note.type === 'note' &&
+        !note.isGrace &&
+        lastScheduledWithFreq &&
+        lastSlurGroup !== undefined &&
+        note.slurGroup === lastSlurGroup
+      ) {
+        const currentFreq = noteToFrequency(note, keyOffset);
+        const lastScheduled = scheduled.find(s => s === lastScheduledWithFreq);
+        if (lastScheduled && lastScheduled.frequency === currentFreq) {
+          lastScheduled.duration += durationSec;
+
+          // 产生静默事件，让 UI 在此时间点高亮
+          scheduled.push({
+            index: globalIndex,
+            startTime: currentTime,
+            duration: durationSec,
+            frequency: null,
+            note,
+          });
+
+          currentTime += durationSec;
+          globalIndex++;
+          continue;
+        }
+      }
 
       // 倚音特殊处理：极短播放时长，从当前时间（主音符开始时间）往前推
       if (note.type === 'note' && note.isGrace) {
@@ -141,6 +171,7 @@ export function scheduleNotes(score: Score, tempoOverride?: number): ScheduledNo
           note,
         });
 
+        lastSlurGroup = undefined;
         currentTime += durationSec;
         globalIndex++;
         continue;
@@ -232,6 +263,13 @@ export function scheduleNotes(score: Score, tempoOverride?: number): ScheduledNo
         frequency,
         note,
       });
+
+      if (frequency !== null) {
+        lastScheduledWithFreq = scheduled[scheduled.length - 1];
+        if (note.type === 'note') {
+          lastSlurGroup = note.slurGroup;
+        }
+      }
 
       currentTime += durationSec;
       globalIndex++;
