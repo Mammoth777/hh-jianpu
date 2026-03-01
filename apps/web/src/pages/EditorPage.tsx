@@ -1,14 +1,44 @@
-import React, { useCallback, useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import Editor from '../components/Editor/Editor';
 import ScoreView from '../components/ScoreView/ScoreView';
 import PlayerBar from '../components/Player/PlayerBar';
+import Metronome from '../components/Player/Metronome';
 import { ResizablePanels } from '../components/ResizablePanels';
 import { SettingsModal } from '../components/Settings';
 import { ImageImportModal, ImageImportButton } from '../components/ImageImport';
 import TopBar from '../components/Layout/TopBar';
 import FeedbackWidget from '../components/Feedback/FeedbackWidget';
+
+/** 处理空格键播放/暂停 */
+function useKeyboardShortcut(
+  mode: 'edit' | 'play',
+  playButtonRef: React.RefObject<HTMLButtonElement>,
+  onPlay: () => void,
+  onPause: () => void,
+  status: 'idle' | 'playing' | 'paused'
+) {
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      // 仅在演奏模式响应空格键
+      if (mode !== 'play') return;
+      if (e.code !== 'Space') return;
+
+      e.preventDefault();
+      if (status === 'playing') {
+        onPause();
+      } else {
+        onPlay();
+      }
+      // 触发后将焦点设置到播放按钮
+      playButtonRef.current?.focus();
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [mode, onPlay, onPause, status, playButtonRef]);
+}
 
 const EditorPage: React.FC = () => {
   const { id } = useParams<{ id?: string }>();
@@ -40,6 +70,7 @@ const EditorPage: React.FC = () => {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isImageImportOpen, setIsImageImportOpen] = useState(false);
+  const playButtonRef = useRef<HTMLButtonElement>(null);
 
   // 根据路由参数加载曲谱
   useEffect(() => {
@@ -52,6 +83,9 @@ const EditorPage: React.FC = () => {
   const handleModeToggle = useCallback(() => {
     setMode(mode === 'edit' ? 'play' : 'edit');
   }, [mode, setMode]);
+
+  // 键盘快捷键：空格键播放/暂停
+  useKeyboardShortcut(mode, playButtonRef, play, pause, playbackStatus);
 
   return (
     <div className="h-screen flex flex-col">
@@ -166,17 +200,21 @@ const EditorPage: React.FC = () => {
 
             {/* 播放控制栏 */}
             <PlayerBar
+              playButtonRef={playButtonRef}
               status={playbackStatus}
               tempo={tempo}
               isLoading={isLoading}
               playDelay={playDelay}
-              countdownValue={countdownValue}
+              showTempoControl={false}
               onPlay={play}
               onPause={pause}
               onStop={stop}
               onTempoChange={setTempo}
               onPlayDelayChange={setPlayDelay}
             />
+
+            {/* 悬浮节拍器 */}
+            <Metronome tempo={tempo} status={playbackStatus} onTempoChange={setTempo} />
           </div>
         )}
       </main>

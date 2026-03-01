@@ -7,6 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.3.1] - 2026-03-01
+
+### Added
+- ⌨️ **键盘快捷键** - 演奏模式下按空格键控制播放/暂停
+  - 播放/暂停后焦点自动设置到播放按钮
+  - 避免误触输入框
+
+### Fixed
+- 🎵 **播放暂停后继续播放** - 修复暂停后点击播放从头开始的问题
+  - 检测 paused 状态，从中断位置继续播放
+  - 保持当前播放进度
+
 ## [0.3.0] - 2026-03-01
 
 ### Added
