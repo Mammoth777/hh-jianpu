@@ -4,6 +4,7 @@ import { useStore } from '../store/useStore';
 import Editor from '../components/Editor/Editor';
 import ScoreView from '../components/ScoreView/ScoreView';
 import PlayerBar from '../components/Player/PlayerBar';
+import Metronome from '../components/Player/Metronome';
 import { ResizablePanels } from '../components/ResizablePanels';
 import { SettingsModal } from '../components/Settings';
 import { ImageImportModal, ImageImportButton } from '../components/ImageImport';
@@ -211,6 +212,9 @@ const EditorPage: React.FC = () => {
               onTempoChange={setTempo}
               onPlayDelayChange={setPlayDelay}
             />
+
+            {/* 悬浮节拍器 */}
+            <Metronome tempo={tempo} status={playbackStatus} onTempoChange={setTempo} />
           </div>
         )}
       </main>
