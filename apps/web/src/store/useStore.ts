@@ -91,9 +91,10 @@ interface AppState {
   setTempo: (bpm: number) => void;
 
   // 播放延迟（倒计时）
-  playDelay: number;      // 用户设置的延迟秒数（0 = 不延迟）
-  countdownValue: number; // 当前倒计时剩余秒数（0 = 未在倒计时）
-  setPlayDelay: (seconds: number) => void;
+  playDelay: number;        // 用户设置的延迟拍数（0 = 不延迟）
+  countdownValue: number;   // 当前倒计时剩余拍数（0 = 未在倒计时）
+  isMetronomeActive: boolean; // 节拍器是否处于预热阶段
+  setPlayDelay: (beats: number) => void;
   cancelCountdown: () => void;
 
   // 播放器实例
@@ -143,6 +144,17 @@ let countdownTimer: ReturnType<typeof setInterval> | null = null;
 export const useStore = create<AppState>((set, get) => {
   const player = new Player();
 
+  // 初始加载：优先读取 localStorage，没有则用示例
+  const persisted = loadPersistedState();
+  const initialSource = persisted.source ?? EXAMPLES.twinkle.source;
+  const initialCurrentScoreId = persisted.currentScoreId ?? null;
+  const initialParse = parseSource(initialSource);
+  // tempo 优先从曲谱元数据读取，其次是 localStorage，最后默认 120
+  const initialTempo = initialParse.score?.metadata?.tempo ?? persisted.tempo ?? 120;
+
+  // 同步初始 tempo 到 player
+  player.setTempo(initialTempo);
+
   // 设置播放回调
   player.setNoteHighlightCallback((index: number) => {
     set({ currentNoteIndex: index });
@@ -155,13 +167,6 @@ export const useStore = create<AppState>((set, get) => {
     }
   });
 
-  // 初始加载：优先读取 localStorage，没有则用示例
-  const persisted = loadPersistedState();
-  const initialSource = persisted.source ?? EXAMPLES.twinkle.source;
-  const initialCurrentScoreId = persisted.currentScoreId ?? null;
-  const initialParse = parseSource(initialSource);
-  // tempo 优先从曲谱元数据读取，其次是 localStorage，最后默认 120
-  const initialTempo = initialParse.score?.metadata?.tempo ?? persisted.tempo ?? 120;
   // playDelay 从 localStorage 读取，默认 0
   const initialPlayDelay = persisted.playDelay ?? 0;
 
@@ -248,16 +253,17 @@ export const useStore = create<AppState>((set, get) => {
 
     playDelay: initialPlayDelay,
     countdownValue: 0,
-    setPlayDelay: (seconds: number) => {
-      set({ playDelay: seconds });
-      savePersistedState(buildPersistedState(get().source, get().tempo, seconds, get().currentScoreId));
+    isMetronomeActive: false,
+    setPlayDelay: (beats: number) => {
+      set({ playDelay: beats });
+      savePersistedState(buildPersistedState(get().source, get().tempo, beats, get().currentScoreId));
     },
     cancelCountdown: () => {
       if (countdownTimer) {
         clearInterval(countdownTimer);
         countdownTimer = null;
       }
-      set({ countdownValue: 0 });
+      set({ countdownValue: 0, isMetronomeActive: false });
     },
 
     player,
@@ -278,7 +284,7 @@ export const useStore = create<AppState>((set, get) => {
       }
 
       /** 实际开始音频播放 */
-      const startAudio = async () => {
+      const doPlay = async () => {
         try {
           set({ isLoading: true });
           // 暂停状态下直接恢复，不能调用 loadScore（其内部会 stop，导致状态重置为 idle 从头播放）
@@ -286,7 +292,8 @@ export const useStore = create<AppState>((set, get) => {
             player.loadScore(get().score!);
           }
           player.setTempo(get().tempo);
-          await player.play();
+          // 延迟已在预热节拍器期间完成，这里不再延迟
+          await player.play(0);
         } catch (error) {
           console.error('播放失败:', error);
         } finally {
@@ -294,24 +301,18 @@ export const useStore = create<AppState>((set, get) => {
         }
       };
 
+      // 延迟拍数 > 0 时，启动预热节拍器
       if (playDelay > 0) {
-        // 启动倒计时
-        set({ countdownValue: playDelay });
-        countdownTimer = setInterval(() => {
-          const current = get().countdownValue;
-          if (current <= 1) {
-            // 倒计时结束，开始播放
-            clearInterval(countdownTimer!);
-            countdownTimer = null;
-            set({ countdownValue: 0 });
-            void startAudio();
-          } else {
-            set({ countdownValue: current - 1 });
-          }
-        }, 1000);
-      } else {
-        await startAudio();
+        set({ countdownValue: playDelay, isMetronomeActive: true });
+        
+        await player.startMetronomeWarmup(playDelay, () => {
+          set({ countdownValue: 0, isMetronomeActive: false });
+          void doPlay();
+        });
+        return;
       }
+
+      await doPlay();
     },
 
     pause: () => {
@@ -323,8 +324,9 @@ export const useStore = create<AppState>((set, get) => {
       if (countdownTimer) {
         clearInterval(countdownTimer);
         countdownTimer = null;
-        set({ countdownValue: 0 });
       }
+      set({ countdownValue: 0, isMetronomeActive: false });
+      get().player.stopMetronomeWarmup();
       get().player.stop();
     },
 

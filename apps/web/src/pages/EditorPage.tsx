@@ -205,7 +205,7 @@ const EditorPage: React.FC = () => {
               tempo={tempo}
               isLoading={isLoading}
               playDelay={playDelay}
-              countdownValue={countdownValue}
+              showTempoControl={false}
               onPlay={play}
               onPause={pause}
               onStop={stop}

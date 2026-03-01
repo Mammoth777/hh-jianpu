@@ -29,7 +29,7 @@ export class Player {
   private animationFrame: number | null = null;
   private _tempo: number = 120;
   private _status: PlaybackStatus = 'idle';
-  private _metronomeEnabled: boolean = false;
+  private _metronomeEnabled: boolean = true; // 默认启用节拍器
 
   private onNoteHighlight: NoteHighlightCallback | null = null;
   private onStatusChange: StatusChangeCallback | null = null;
@@ -101,6 +101,63 @@ export class Player {
   }
 
   /**
+   * 预热节拍器：在延迟期间播放节拍声
+   * @param beats 预热拍数
+   * @param onComplete 预热完成回调（回调时在下一拍开始音符播放）
+   */
+  async startMetronomeWarmup(beats: number, onComplete: () => void): Promise<void> {
+    await this.initTone();
+    const Tone = this.tone;
+    await Tone.start();
+
+    const secondsPerBeat = 60 / this._tempo;
+    let currentBeat = beats;
+
+    const tick = () => {
+      if (currentBeat <= 0) {
+        return;
+      }
+      if (this.metronomeSynth) {
+        this.metronomeSynth.triggerAttackRelease('C5', '32n', Tone.now());
+      }
+      this.onBeat?.(currentBeat, 4);
+      currentBeat--;
+    };
+
+    // 立即播放第一拍
+    tick();
+
+    // 如果只有 1 拍，等待一个节拍后完成
+    if (beats <= 1) {
+      setTimeout(() => {
+        onComplete();
+      }, secondsPerBeat * 1000);
+      return;
+    }
+
+    // 剩余拍数用 setInterval，最后一拍完成后等待一个节拍再回调
+    const intervalId = setInterval(() => {
+      tick();
+      if (currentBeat <= 0) {
+        clearInterval(intervalId);
+        // 最后一拍播放后，等待一个节拍再开始音符
+        setTimeout(() => {
+          onComplete();
+        }, secondsPerBeat * 1000);
+      }
+    }, secondsPerBeat * 1000);
+  }
+
+  /**
+   * 停止预热节拍器
+   */
+  stopMetronomeWarmup(): void {
+    if (this.tone) {
+      this.tone.getTransport().cancel();
+    }
+  }
+
+  /**
    * 加载曲谱（仅保存曲谱，播放时按当前 tempo 重新计算时序）
    */
   loadScore(score: Score): void {
@@ -111,8 +168,9 @@ export class Player {
 
   /**
    * 播放
+   * @param delayBeats 延迟拍数（可选，默认为 0）
    */
-  async play(): Promise<void> {
+  async play(delayBeats: number = 0): Promise<void> {
     await this.initTone();
     const Tone = this.tone;
 
@@ -135,7 +193,10 @@ export class Player {
     Tone.getTransport().cancel();
     Tone.getTransport().bpm.value = this._tempo;
 
-    // 调度所有音符
+    // 延迟拍数对应的延迟时间
+    const delaySeconds = (delayBeats * 60) / this._tempo;
+
+    // 调度所有音符（加上延迟）
     for (const scheduled of this.scheduledNotes) {
       Tone.getTransport().schedule((time: number) => {
         if (scheduled.frequency !== null) {
@@ -149,13 +210,13 @@ export class Player {
         Tone.getDraw().schedule(() => {
           this.onNoteHighlight?.(scheduled.index);
         }, time);
-      }, scheduled.startTime);
+      }, delaySeconds + scheduled.startTime);
     }
 
     // 在最后一个音符结束后自动停止
     const lastNote = this.scheduledNotes[this.scheduledNotes.length - 1];
     if (lastNote) {
-      const endTime = lastNote.startTime + lastNote.duration;
+      const endTime = delaySeconds + lastNote.startTime + lastNote.duration;
       Tone.getTransport().schedule((time: number) => {
         Tone.getDraw().schedule(() => {
           this.stop();
@@ -164,14 +225,19 @@ export class Player {
     }
 
     // === 节拍器调度（与音符共用同一 Transport，不互相干扰） ===
+    // 节拍器从延迟后开始，重音从第1拍重新计算
     if (this._metronomeEnabled && this._score && this.metronomeSynth) {
       const beatsPerMeasure = this._score.metadata.timeSignature.beats;
       const secondsPerBeat = 60 / this._tempo;
       const totalDuration = lastNote ? lastNote.startTime + lastNote.duration : 0;
 
+      // 节拍器从 delaySeconds 开始，从第1拍重新计算
+      const startTime = delaySeconds;
+      const adjustedTotalDuration = totalDuration - delaySeconds;
+
       let beatIndex = 0;
-      let t = 0;
-      while (t <= totalDuration + secondsPerBeat * 0.5) {
+      let t = startTime;
+      while (t <= startTime + adjustedTotalDuration + secondsPerBeat * 0.5) {
         const currentBeat = beatIndex % beatsPerMeasure; // 0-based，0 = 强拍
         const isDownbeat = currentBeat === 0;
         const capturedT = t;
