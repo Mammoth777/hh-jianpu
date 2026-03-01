@@ -17,8 +17,8 @@
 
 | 角色 | 说明 | 典型 Agent |
 |------|------|-----------|
-| **Planner** | 规划任务、分解子任务、设定验收标准 | Claude Opus, GPT-4o |
-| **Executor** | 执行具体编码任务 | Qwen Code, Copilot, OpenCode |
+| **Planner** | 规划任务、分解子任务、设定验收标准 | Copilot 里的 Claude, GPT codex |
+| **Executor** | 执行具体编码任务 | Qwen Code, OpenCode |
 | **Reviewer** | 审查完成质量、验收或打回 | Claude Opus, Human |
 | **Human** | 最终决策者，可担任任何角色 | 用户本人 |
 
@@ -53,15 +53,6 @@
 
 ### Context
 为什么需要这个任务，背景信息
-
-### Subtasks
-- [ ] 子任务 1
-- [ ] 子任务 2
-- [ ] 子任务 3
-
-### Acceptance Criteria
-- 条件 1
-- 条件 2
 
 ### Notes
 执行过程中的备注，每次更新追加时间戳：
@@ -123,7 +114,7 @@ not-started → in-progress → review → completed
 
 1. 在 `current.md` 底部追加新任务块
 2. ID 递增：查看最后一个 `TODO-XXX`，加 1
-3. 必须填写 Context、Subtasks、Acceptance Criteria
+3. 必须填写 Context
 4. 设置合理的 priority 和 assignee
 
 ### Executor 认领任务
@@ -135,7 +126,7 @@ not-started → in-progress → review → completed
 
 ### Executor 完成任务
 
-1. 勾选所有 Subtasks 的 checkbox
+1. 勾选checkbox
 2. 将 `status` 改为 `review`
 3. 更新 `updated_at`
 4. 在 Notes 中记录完成摘要
