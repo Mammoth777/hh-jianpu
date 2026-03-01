@@ -7,3 +7,9 @@
  * 用户停止输入后等待该时间再触发保存，避免频繁写入
  */
 export const AUTO_SAVE_DELAY_MS = 1000;
+
+/**
+ * 帮助页面版本信息
+ */
+export const HELP_PAGE_VERSION = 'v0.4.1';
+export const HELP_PAGE_UPDATED_DATE = '2026年03月01日';

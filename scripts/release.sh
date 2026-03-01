@@ -82,11 +82,11 @@ sed -i.bak "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" 
 sed -i.bak "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" packages/core/package.json && rm packages/core/package.json.bak
 sed -i.bak "s/\"version\": \"$CURRENT_VERSION\"/\"version\": \"$NEW_VERSION\"/" apps/web/package.json && rm apps/web/package.json.bak
 
-# 7. 更新 helpPage.tsx 里的版本号和日期
+# 7. 更新 config.ts 里的版本号和日期
 echo -e "${GREEN}📝 更新帮助文档版本号和日期...${NC}"
 TODAY=$(date +%Y年%m月%d日)
-sed -i.bak "s/version: '.*'/version: '$NEW_VERSION'/" apps/web/src/pages/helpPage.tsx && rm apps/web/src/pages/helpPage.tsx.bak
-sed -i.bak "s|更新于 [0-9]\{4\}年[0-9]\{1,2\}月[0-9]\{1,2\}日|更新于 $TODAY|" apps/web/src/pages/helpPage.tsx && rm apps/web/src/pages/helpPage.tsx.bak
+sed -i.bak "s/HELP_PAGE_VERSION = '.*'/HELP_PAGE_VERSION = 'v$NEW_VERSION'/" apps/web/src/config.ts && rm apps/web/src/config.ts.bak
+sed -i.bak "s/HELP_PAGE_UPDATED_DATE = '.*'/HELP_PAGE_UPDATED_DATE = '$TODAY'/" apps/web/src/config.ts && rm apps/web/src/config.ts.bak
 
 echo -e "${GREEN}✅ 版本号已更新${NC}"
 echo ""

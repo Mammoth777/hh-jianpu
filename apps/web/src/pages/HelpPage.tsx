@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import TopBar from '../components/Layout/TopBar';
 import ButtonTip from '../components/ui/ButtonTip';
 import FeedbackWidget from '../components/Feedback/FeedbackWidget';
+import { HELP_PAGE_VERSION, HELP_PAGE_UPDATED_DATE } from '../config';
 
 const HelpPage: React.FC = () => {
   const navigate = useNavigate();
@@ -324,7 +325,7 @@ C 满 天 都 是 小 星 星 -`}
 
       {/* Footer */}
       <footer className="px-6 py-3 border-t border-gray-200 bg-gray-50 text-center flex-shrink-0">
-        <p className="text-xs text-gray-500">简谱语法参考 v0.3.1 · 更新于 2026年03月01日 </p>
+        <p className="text-xs text-gray-500">简谱语法参考 {HELP_PAGE_VERSION} · 更新于 {HELP_PAGE_UPDATED_DATE} </p>
       </footer>
 
       {/* 右下角悬浮反馈组件 */}
