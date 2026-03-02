@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.3] - 2026-03-02
+
 ### Added
 - 🎵 **演奏模式音符字体大小** - 新增中杯/大杯/超大杯三档切换
 
