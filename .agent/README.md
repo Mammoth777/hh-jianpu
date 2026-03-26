@@ -14,11 +14,8 @@
 │   ├── self-improvement/SKILL.md
 │   ├── release/SKILL.md
 │   ├── bug-fix/SKILL.md
+│   ├── clear-todo/SKILL.md
 │   └── user-feedback/SKILL.md
-├── todos/                           ← 持久化任务队列（跨 agent 共享）
-│   ├── PROTOCOL.md                  ← 任务协议规范
-│   ├── current.md                   ← 当前活跃任务
-│   └── archive/                     ← 已完成任务归档
 └── learnings/                       ← 经验库（所有 agent 共享）
     ├── LEARNINGS.md
     ├── ERRORS.md
@@ -44,54 +41,16 @@ AGENTS.md                            ← 🔴 通用适配器（Claude Code, Qwe
 
 所有 agent 共享的内容只在 `.agent/` 中维护一份。各 agent 工具通过 **symlink** 或 **引用** 访问：
 
-| Agent 工具 | 指令来源 | 技能来源 | 任务来源 |
-|------------|---------|---------|---------|
-| GitHub Copilot | `.github/copilot-instructions.md` → symlink | `.github/skills/` → symlink | `.agent/todos/current.md` |
-| OpenCode | `AGENTS.md` → 引用 | `.opencode/skills/` → symlink | `.agent/todos/current.md` |
-| Qwen Code | `AGENTS.md` → 引用 | `.agent/skills/` 直接 | `.agent/todos/current.md` |
-| Claude Code | `AGENTS.md` → 引用 | `.agent/skills/` 直接 | `.agent/todos/current.md` |
+| Agent 工具 | 指令来源 | 技能来源 |
+|------------|---------|---------|
+| GitHub Copilot | `.github/copilot-instructions.md` → symlink | `.github/skills/` → symlink |
+| OpenCode | `AGENTS.md` → 引用 | `.opencode/skills/` → symlink |
+| Qwen Code | `AGENTS.md` → 引用 | `.agent/skills/` 直接 |
+| Claude Code | `AGENTS.md` → 引用 | `.agent/skills/` 直接 |
 
-### 2. Hub-and-Spoke（中心辐射模型）
+### 2. 待办清单
 
-```
-                    ┌─────────────────┐
-                    │   .agent/ Hub   │
-                    │  (instructions, │
-                    │  skills, todos, │
-                    │   learnings)    │
-                    └────────┬────────┘
-                             │
-            ┌────────────────┼────────────────┐
-            │                │                │
-   ┌────────▼──────┐ ┌──────▼───────┐ ┌──────▼───────┐
-   │   .github/    │ │  .opencode/  │ │  AGENTS.md   │
-   │  (Copilot)    │ │  (OpenCode)  │ │(Qwen/Claude) │
-   │   symlinks    │ │   symlinks   │ │   引用       │
-   └───────────────┘ └──────────────┘ └──────────────┘
-```
-
-### 3. 跨 Agent 任务委派
-
-通过文件级 todo 协议实现 **Senior → Junior** 任务委派：
-
-```
-Senior Model (e.g. Claude Opus)          Junior Model (e.g. Qwen)
-    │                                          │
-    ├─ 创建任务 (status: not-started)          │
-    ├─ 分解子任务                               │
-    ├─ 设定验收标准                             │
-    │                                          │
-    │  ─── .agent/todos/current.md ────►       │
-    │                                          ├─ 读取任务
-    │                                          ├─ 标记 in-progress
-    │                                          ├─ 执行实现
-    │                                          ├─ 标记 completed
-    │                                          │
-    │       ◄── .agent/todos/current.md ───    │
-    │                                          │
-    ├─ 审查完成质量                             │
-    ├─ 归档或打回                               │
-```
+用户在根目录 `TODO.md` 中用 checkbox 随手记录待办，说"清空 todo"时 Agent 整理分类并逐一完成。触发 `clear-todo` skill。
 
 ---
 
@@ -101,18 +60,14 @@ Senior Model (e.g. Claude Opus)          Junior Model (e.g. Qwen)
 
 任何 agent 在启动会话时应：
 1. 读取 `.agent/instructions.md` 获取项目规范
-2. 检查 `.agent/todos/current.md` 是否有待办任务
-3. 工作完成后更新 todo 状态
-4. 遇到错误/经验 记录到 `.agent/learnings/`
+2. 检查根目录 `TODO.md` 是否有待办事项
+3. 遇到错误/经验 记录到 `.agent/learnings/`
 
 ### 对于开发者
 
 ```bash
-# 查看当前任务
-cat .agent/todos/current.md
-
-# 查看待处理经验
-grep -rh "状态\*\*: pending" .agent/learnings/*.md | wc -l
+# 查看当前待办
+cat TODO.md
 
 # 添加新 agent 适配器（以 .cursor/ 为例）
 ln -s ../.agent/skills .cursor/skills

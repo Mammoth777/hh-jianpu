@@ -54,7 +54,7 @@ bug: [简短描述]
 **前置条件**: 第一步确认 bug 存在。
 
 **操作**:
-1. 记录修复步骤（使用 agent 内置 todo 或 `.agent/todos/current.md`）
+1. 记录修复步骤（使用 agent 内置 todo 或 `TODO.md`）
 2. 修改代码，遵循项目规范（参见 `.agent/instructions.md`）
 3. 为修复添加回归测试
 

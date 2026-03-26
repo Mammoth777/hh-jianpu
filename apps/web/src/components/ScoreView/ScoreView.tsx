@@ -1,4 +1,4 @@
-import React, { useMemo, useEffect, useState } from 'react';
+import React, { useMemo, useEffect, useState, useRef } from 'react';
 import { createLayout } from '@hh-jianpu/core';
 import type { Score, NotePosition } from '@hh-jianpu/core';
 import MeasureView from './MeasureView';
@@ -10,6 +10,8 @@ interface ScoreViewProps {
   measuresPerLine?: number;
   noteFontSize?: number;
   onNoteClick?: (index: number) => void;
+  /** 滚动到指定小节编号（从 1 开始） */
+  scrollToMeasure?: number;
 }
 
 const ScoreView: React.FC<ScoreViewProps> = ({
@@ -19,10 +21,15 @@ const ScoreView: React.FC<ScoreViewProps> = ({
   measuresPerLine,
   noteFontSize = 18,
   onNoteClick,
+  scrollToMeasure,
 }) => {
   // 响应式：根据窗口宽度自动调整
   const [containerWidth, setContainerWidth] = useState(width || 800);
   const [autoMeasuresPerLine, setAutoMeasuresPerLine] = useState(measuresPerLine || 4);
+  // 容器引用，用于滚动
+  const containerRef = useRef<HTMLDivElement>(null);
+  // 存储每行的引用，用于滚动到指定行
+  const lineRefs = useRef<Map<number, SVGElement>>(new Map());
 
   useEffect(() => {
     if (width !== undefined && measuresPerLine !== undefined) return;
@@ -57,8 +64,33 @@ const ScoreView: React.FC<ScoreViewProps> = ({
     [score, finalWidth, finalMeasuresPerLine]
   );
 
+  // 处理滚动到指定小节
+  useEffect(() => {
+    if (scrollToMeasure === undefined || !containerRef.current) return;
+    
+    // 找到包含目标小节的行
+    for (const line of layout.lines) {
+      const hasTargetMeasure = line.measures.some(m => m.measure.number === scrollToMeasure);
+      if (hasTargetMeasure) {
+        const lineElement = lineRefs.current.get(line.y);
+        if (lineElement) {
+          // 计算滚动位置，将目标行滚动到容器顶部附近
+          const containerRect = containerRef.current.getBoundingClientRect();
+          const lineRect = lineElement.getBoundingClientRect();
+          const scrollTop = lineRect.top - containerRect.top + containerRef.current.scrollTop - 20;
+          
+          containerRef.current.scrollTo({
+            top: scrollTop,
+            behavior: 'smooth'
+          });
+        }
+        break;
+      }
+    }
+  }, [scrollToMeasure, layout.lines]);
+
   return (
-    <div className="score-view overflow-auto">
+    <div ref={containerRef} className="score-view overflow-auto">
       <svg
         width={layout.width}
         height={layout.height}
@@ -96,7 +128,14 @@ const ScoreView: React.FC<ScoreViewProps> = ({
 
         {/* 小节 */}
         {layout.lines.map((line, lineIdx) => (
-          <g key={lineIdx}>
+          <g
+            key={lineIdx}
+            ref={(el) => {
+              if (el) {
+                lineRefs.current.set(line.y, el);
+              }
+            }}
+          >
             {/* 行首小节线 */}
             <line
               x1={line.measures[0]?.x ?? 0}

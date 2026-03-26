@@ -11,9 +11,8 @@
 | 资源 | 位置 | 说明 |
 |------|------|------|
 | **完整项目指令** | `.agent/instructions.md` | 代码风格、架构、测试等所有规范 |
-| **技能库** | `.agent/skills/` | bug-fix, user-feedback, release, self-improvement |
-| **任务队列** | `.agent/todos/current.md` | 跨 Agent 持久化任务管理 |
-| **任务协议** | `.agent/todos/PROTOCOL.md` | 任务格式、状态流转、协作规则 |
+| **技能库** | `.agent/skills/` | bug-fix, user-feedback, release, clear-todo |
+| **待办清单** | `TODO.md` | 随手记任务，说"清空 todo"时执行 |
 | **经验库** | `.agent/learnings/` | 错误、经验、功能请求记录 |
 | **架构说明** | `.agent/README.md` | 协作架构总览 |
 
@@ -22,7 +21,7 @@
 ## 每次会话必读
 
 1. **阅读指令**: `.agent/instructions.md`
-2. **检查任务**: `.agent/todos/current.md` — 是否有分配给你的任务
+2. **检查待办**: `TODO.md` — 是否有待办事项
 3. **回顾经验**: `.agent/learnings/` — 是否有相关历史经验
 
 ---
@@ -64,6 +63,7 @@ pnpm lint         # Lint 检查
 |--------|-------|------|
 | `bug:` | 验证→修复→回归 | `.agent/skills/bug-fix/SKILL.md` |
 | `feedback:` | 理解→评估→实施→验证 | `.agent/skills/user-feedback/SKILL.md` |
+| `清空todo`/`clear todo` | 分类→逐个完成 | `.agent/skills/clear-todo/SKILL.md` |
 
 ---
 

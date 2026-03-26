@@ -11,40 +11,38 @@ const FONT_SIZES = [
 interface PlayerBarProps {
   playButtonRef?: React.RefObject<HTMLButtonElement>;
   status: PlaybackStatus;
-  tempo: number;
   isLoading?: boolean;
   playDelay: number;
   isMetronomeActive?: boolean;
   countdownValue?: number;
-  showTempoControl?: boolean;
   noteFontSize: number;
+  /** 编辑器聚焦时禁用控制条 */
+  disabled?: boolean;
   onNoteFontSizeChange: (size: number) => void;
   onPlay: () => void;
   onPause: () => void;
   onStop: () => void;
-  onTempoChange: (bpm: number) => void;
   onPlayDelayChange: (beats: number) => void;
 }
 
 const PlayerBar: React.FC<PlayerBarProps> = ({
   playButtonRef,
   status,
-  tempo,
   isLoading = false,
   playDelay,
   isMetronomeActive = false,
   countdownValue = 0,
-  showTempoControl = true,
   noteFontSize,
+  disabled = false,
   onNoteFontSizeChange,
   onPlay,
   onPause,
   onStop,
-  onTempoChange,
   onPlayDelayChange,
 }) => {
   // 倒计时期间：再次点击/按空格 → 停止倒计时
   const handlePlayClick = () => {
+    if (disabled) return;
     if (isMetronomeActive) {
       onPlay(); // play() 内部检测到 isMetronomeActive 会停止倒计时
     } else if (status === 'playing') {
@@ -55,12 +53,13 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
   };
 
   return (
-    <div className="flex items-center justify-center gap-6 px-6 py-3 bg-white/80 backdrop-blur border-t border-barline">
+    <div className={`flex items-center justify-center gap-6 px-6 py-3 bg-white/80 backdrop-blur border-t border-barline transition-opacity ${disabled ? 'opacity-50' : ''}`}>
       {/* 停止 */}
       <button
-        onClick={onStop}
-        className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-ink"
-        title="停止"
+        onClick={disabled ? undefined : onStop}
+        disabled={disabled}
+        className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-ink disabled:opacity-50 disabled:cursor-not-allowed"
+        title={disabled ? "点击编辑区域外启用控制" : "停止"}
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
           <rect x="4" y="4" width="12" height="12" rx="2" />
@@ -71,19 +70,20 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
       <button
         ref={playButtonRef}
         onClick={handlePlayClick}
-        disabled={isLoading}
+        disabled={isLoading || disabled}
         className={`p-3 rounded-full text-white transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
           isMetronomeActive
             ? 'bg-amber-500 hover:bg-amber-600'
             : 'bg-highlight hover:bg-blue-700'
         }`}
         title={
+          disabled ? "点击编辑区域外启用控制" :
           isLoading ? '加载中…' :
           isMetronomeActive ? '点击取消倒计时' :
           status === 'playing' ? '暂停' : '播放'
         }
       >
-        {isLoading ? (
+        {disabled || isLoading ? (
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="animate-spin">
             <circle cx="12" cy="12" r="10" strokeWidth="3" strokeDasharray="32" />
           </svg>
@@ -104,13 +104,14 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
       </button>
 
       {/* 延迟设置 */}
-      <div className="flex items-center gap-1.5">
+      <div className={`flex items-center gap-1.5 ${disabled ? 'pointer-events-none' : ''}`}>
         <span className="text-xs text-played select-none">延迟:</span>
         {DELAY_BEATS.map((beats) => (
           <button
             key={beats}
-            onClick={() => onPlayDelayChange(beats)}
-            className={`px-2 py-0.5 text-xs rounded transition-colors ${
+            onClick={() => !disabled && onPlayDelayChange(beats)}
+            disabled={disabled}
+            className={`px-2 py-0.5 text-xs rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
               playDelay === beats
                 ? 'bg-highlight text-white'
                 : 'bg-gray-100 text-played hover:bg-gray-200'
@@ -122,12 +123,13 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
       </div>
 
       {/* 字体大小 */}
-      <div className="flex items-center gap-1">
+      <div className={`flex items-center gap-1 ${disabled ? 'pointer-events-none' : ''}`}>
         {FONT_SIZES.map(({ label, value }) => (
           <button
             key={value}
-            onClick={() => onNoteFontSizeChange(value)}
-            className={`px-2 py-0.5 text-xs rounded transition-colors ${
+            onClick={() => !disabled && onNoteFontSizeChange(value)}
+            disabled={disabled}
+            className={`px-2 py-0.5 text-xs rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
               noteFontSize === value
                 ? 'bg-highlight text-white'
                 : 'bg-gray-100 text-played hover:bg-gray-200'
@@ -137,22 +139,6 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
           </button>
         ))}
       </div>
-
-      {/* 速度控制（可选） */}
-      {showTempoControl && (
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-played select-none">♩=</span>
-          <input
-            type="range"
-            min={40}
-            max={240}
-            value={tempo}
-            onChange={(e) => onTempoChange(parseInt(e.target.value, 10))}
-            className="w-28 accent-highlight"
-          />
-          <span className="text-sm font-mono text-ink w-8 text-right">{tempo}</span>
-        </div>
-      )}
     </div>
   );
 };

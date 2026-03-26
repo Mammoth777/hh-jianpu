@@ -23,21 +23,18 @@
 |------|------|------|
 | 项目指令 | `.agent/instructions.md` | 本文件（单一信源） |
 | 技能库 | `.agent/skills/` | 所有 agent 共享的技能 |
-| 任务队列 | `.agent/todos/current.md` | 持久化跨 agent 任务管理 |
+| 待办清单 | `TODO.md` | 随手记任务，说"清空 todo"时执行 |
 | 经验库 | `.agent/learnings/` | 错误、经验、功能请求 |
 | 架构文档 | `.agent/README.md` | 协作架构说明 |
 
 ### 每次会话开始时
 
 1. 读取本文件获取项目规范
-2. 检查 `.agent/todos/current.md` 是否有分配给你的任务
-3. 如有待办任务，优先处理
+2. 检查 `TODO.md` 是否有待办事项
 
 ### 每次会话结束前
 
-1. 更新已完成任务的状态
-2. 如有未完成任务，记录进度到任务 notes
-3. 如遇到错误/经验，记录到 `.agent/learnings/`
+1. 如遇到错误/经验，记录到 `.agent/learnings/`
 
 ---
 

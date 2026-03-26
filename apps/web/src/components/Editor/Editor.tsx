@@ -180,6 +180,12 @@ interface EditorProps {
   lastSavedAt?: Date | null;
   /** 移调确认后的回调，用于将移调结果保存为新曲谱 */
   onTransposeApply?: (newSource: string, titleSuffix?: string) => void;
+  /** 编辑器获得焦点时的回调 */
+  onFocus?: () => void;
+  /** 编辑器失去焦点时的回调 */
+  onBlur?: () => void;
+  /** 编辑器滚动时的回调，参数为当前可见的第一行行号（从 1 开始） */
+  onScroll?: (firstVisibleLine: number) => void;
 }
 
 /** 将自动保存间隔为可读字符串，如 "1秒" 或 "1000ms" */
@@ -190,13 +196,15 @@ function formatDelay(ms: number): string {
 /**
  * 简谱文本编辑器（CodeMirror 6）
  */
-const Editor: React.FC<EditorProps> = ({ value, onChange, parseErrors = [], isAutoSaving = false, lastSavedAt = null, onTransposeApply }) => {
+const Editor: React.FC<EditorProps> = ({ value, onChange, parseErrors = [], isAutoSaving = false, lastSavedAt = null, onTransposeApply, onFocus, onBlur, onScroll }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
   const [copied, setCopied] = useState(false);
   const [isTransposeOpen, setIsTransposeOpen] = useState(false);
   // 记录上一次由内部变更产生的值，避免 value prop 变化时重复写回 EditorView
   const internalValueRef = useRef<string>(value);
+  // 记录上一次滚动的行号，避免重复调用 onScroll
+  const lastScrollLineRef = useRef<number>(1);
 
   // ── 初始化 EditorView（仅 mount 时创建一次）────────────────
   useEffect(() => {
@@ -221,6 +229,30 @@ const Editor: React.FC<EditorProps> = ({ value, onChange, parseErrors = [], isAu
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // ── 滚动事件监听（独立的 effect，避免重新创建 EditorView）────────────────
+  useEffect(() => {
+    const view = viewRef.current;
+    if (!view || !onScroll) return;
+
+    const handleScroll = () => {
+      const scrollTop = view.scrollDOM.scrollTop;
+      const lineHeight = view.defaultLineHeight;
+      const firstVisibleLine = Math.floor(scrollTop / lineHeight) + 1;
+      
+      // 只有当行号变化时才调用 onScroll
+      if (firstVisibleLine !== lastScrollLineRef.current) {
+        lastScrollLineRef.current = firstVisibleLine;
+        onScroll(firstVisibleLine);
+      }
+    };
+    
+    view.scrollDOM.addEventListener('scroll', handleScroll);
+    
+    return () => {
+      view.scrollDOM.removeEventListener('scroll', handleScroll);
+    };
+  }, [onScroll]);
 
   // ── 外部 value 变化时同步（加载示例等场景）────────────────
   useEffect(() => {
@@ -321,6 +353,8 @@ const Editor: React.FC<EditorProps> = ({ value, onChange, parseErrors = [], isAu
         ref={containerRef}
         className="flex-1 overflow-hidden"
         style={{ minHeight: 0 }}
+        onFocus={onFocus}
+        onBlur={onBlur}
       />
 
       {/* 移调弹框 */}

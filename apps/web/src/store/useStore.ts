@@ -20,7 +20,7 @@ import {
 } from '../services/myScores';
 
 /** 视图模式 */
-export type ViewMode = 'edit' | 'play';
+export type ViewMode = 'edit';
 
 // ============================================================
 // localStorage 持久化工具
@@ -78,10 +78,6 @@ interface AppState {
   // 解析结果
   score: Score | null;
   parseErrors: ParseError[];
-
-  // 视图模式
-  mode: ViewMode;
-  setMode: (m: ViewMode) => void;
 
   // 播放状态
   playbackStatus: PlaybackStatus;
@@ -238,14 +234,6 @@ export const useStore = create<AppState>((set, get) => {
     isAutoSaving: false,
     lastSavedAt: null,
 
-    mode: 'edit',
-    setMode: (m: ViewMode) => {
-      if (m === 'edit') {
-        get().stop();
-      }
-      set({ mode: m });
-    },
-
     playbackStatus: 'idle',
     currentNoteIndex: -1,
     tempo: initialTempo,
@@ -351,13 +339,14 @@ export const useStore = create<AppState>((set, get) => {
 
     pause: () => {
       get().player.pause();
-      // 暂停时也需要停止节拍器预热和清理倒计时状态
+      // 暂停时清理倒计时状态（但不调用 stopMetronomeWarmup，它会清除 Transport 调度导致无法继续播放）
       if (countdownTimer) {
         clearInterval(countdownTimer);
         countdownTimer = null;
       }
       set({ countdownValue: 0, isMetronomeActive: false });
-      get().player.stopMetronomeWarmup();
+      // 仅停止节拍器预热的定时器，不调用 get().player.stopMetronomeWarmup()
+      // 因为后者会调用 Transport.cancel() 清除所有调度，导致恢复播放时无音符可播放
     },
 
     stop: () => {

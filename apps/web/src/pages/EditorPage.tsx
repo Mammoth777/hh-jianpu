@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useStore } from '../store/useStore';
 import Editor from '../components/Editor/Editor';
@@ -13,18 +13,20 @@ import FeedbackWidget from '../components/Feedback/FeedbackWidget';
 
 /** 处理空格键播放/暂停/取消倒计时 */
 function useKeyboardShortcut(
-  mode: 'edit' | 'play',
   playButtonRef: React.RefObject<HTMLButtonElement>,
   onPlay: () => void,
   onPause: () => void,
   status: 'idle' | 'playing' | 'paused',
-  isMetronomeActive: boolean
+  isMetronomeActive: boolean,
+  isEditorFocused: boolean
 ) {
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      // 仅在演奏模式响应空格键
-      if (mode !== 'play') return;
+      // 空格键响应播放/暂停
       if (e.code !== 'Space') return;
+      
+      // 编辑器聚焦时不响应空格键（避免与编辑冲突）
+      if (isEditorFocused) return;
 
       e.preventDefault();
       if (status === 'playing') {
@@ -41,7 +43,7 @@ function useKeyboardShortcut(
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [mode, onPlay, onPause, status, isMetronomeActive, playButtonRef]);
+  }, [onPlay, onPause, status, isMetronomeActive, playButtonRef, isEditorFocused]);
 }
 
 const EditorPage: React.FC = () => {
@@ -53,8 +55,6 @@ const EditorPage: React.FC = () => {
     setSource,
     score,
     parseErrors,
-    mode,
-    setMode,
     playbackStatus,
     currentNoteIndex,
     tempo,
@@ -78,6 +78,8 @@ const EditorPage: React.FC = () => {
 
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isImageImportOpen, setIsImageImportOpen] = useState(false);
+  const [isEditorFocused, setIsEditorFocused] = useState(false);
+  const [scrollToMeasure, setScrollToMeasure] = useState<number | undefined>(undefined);
   const playButtonRef = useRef<HTMLButtonElement>(null);
 
   // 根据路由参数加载曲谱
@@ -88,12 +90,27 @@ const EditorPage: React.FC = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const handleModeToggle = useCallback(() => {
-    setMode(mode === 'edit' ? 'play' : 'edit');
-  }, [mode, setMode]);
-
   // 键盘快捷键：空格键播放/暂停/取消倒计时
-  useKeyboardShortcut(mode, playButtonRef, play, pause, playbackStatus, isMetronomeActive);
+  useKeyboardShortcut(playButtonRef, play, pause, playbackStatus, isMetronomeActive, isEditorFocused);
+
+  // 处理编辑器滚动事件，计算应该滚动到的小节
+  const handleEditorScroll = (firstVisibleLine: number) => {
+    if (!score) return;
+    
+    // 找到第一个起始行号 <= 当前可见行的小节
+    let targetMeasure: number | undefined;
+    for (const measure of score.measures) {
+      if (measure.sourceLine !== undefined && measure.sourceLine <= firstVisibleLine) {
+        targetMeasure = measure.number;
+      } else {
+        break;
+      }
+    }
+    
+    if (targetMeasure !== undefined && targetMeasure !== scrollToMeasure) {
+      setScrollToMeasure(targetMeasure);
+    }
+  };
 
   return (
     <div className="h-screen flex flex-col">
@@ -103,7 +120,7 @@ const EditorPage: React.FC = () => {
         backLabel="我的谱谱"
         subtitle={
           <span className="flex items-center gap-2">
-            {mode === 'play' && score?.metadata.title && (
+            {score?.metadata.title && (
               <span className="text-sm text-played">— {score.metadata.title}</span>
             )}
             {isAutoSaving && (
@@ -113,10 +130,8 @@ const EditorPage: React.FC = () => {
         }
         actions={
           <>
-            {/* 图片识别（仅编辑模式） */}
-            {mode === 'edit' && (
-              <ImageImportButton onClick={() => setIsImageImportOpen(true)} />
-            )}
+            {/* 图片识别 */}
+            <ImageImportButton onClick={() => setIsImageImportOpen(true)} />
 
             {/* 设置（暂时禁用） */}
             <button
@@ -128,33 +143,16 @@ const EditorPage: React.FC = () => {
               <span className="hidden sm:inline">设置</span>
             </button>
 
-            {/* 模式切换 */}
-            <button
-              onClick={handleModeToggle}
-              className="flex items-center gap-1.5 px-3 py-1.5 text-sm rounded-lg border border-barline hover:bg-gray-50 transition-colors"
-            >
-              {mode === 'edit' ? (
-                <>
-                  <span>▶</span>
-                  <span>演奏模式</span>
-                </>
-              ) : (
-                <>
-                  <span>✏️</span>
-                  <span>编辑模式</span>
-                </>
-              )}
-            </button>
+
           </>
         }
       />
 
       {/* 主内容区 */}
-      <main className="flex-1 overflow-hidden">
-        {mode === 'edit' ? (
-          /* ===== 编辑模式 ===== */
+      <main className="flex-1 overflow-hidden flex flex-col">
+        <div className="flex-1 overflow-hidden">
           <ResizablePanels
-            left={<Editor value={source} onChange={setSource} parseErrors={parseErrors} isAutoSaving={isAutoSaving} lastSavedAt={lastSavedAt} onTransposeApply={(s) => saveAsNewScore(s, '移调版')} />}
+            left={<Editor value={source} onChange={setSource} parseErrors={parseErrors} isAutoSaving={isAutoSaving} lastSavedAt={lastSavedAt} onTransposeApply={(s) => saveAsNewScore(s, '移调版')} onFocus={() => setIsEditorFocused(true)} onBlur={() => setIsEditorFocused(false)} onScroll={handleEditorScroll} />}
             right={
               score ? (
                 <div className="h-full flex flex-col">
@@ -170,7 +168,7 @@ const EditorPage: React.FC = () => {
                   )}
                   {/* 曲谱预览 */}
                   <div className="flex-1 overflow-auto">
-                    <ScoreView score={score} currentNoteIndex={-1} noteFontSize={noteFontSize} />
+                    <ScoreView score={score} currentNoteIndex={currentNoteIndex} noteFontSize={noteFontSize} scrollToMeasure={scrollToMeasure} />
                   </div>
                 </div>
               ) : (
@@ -193,42 +191,27 @@ const EditorPage: React.FC = () => {
             minRightWidth={300}
             defaultLeftWidth={35}
           />
-        ) : (
-          /* ===== 演奏模式 ===== */
-          <div className="h-full flex flex-col">
-            <div className="flex-1 overflow-auto p-6">
-              {score ? (
-                <ScoreView score={score} currentNoteIndex={currentNoteIndex} noteFontSize={noteFontSize} />
-              ) : (
-                <div className="flex items-center justify-center h-full text-played">
-                  <p>没有可播放的曲谱，请先编辑</p>
-                </div>
-              )}
-            </div>
+        </div>
 
-            {/* 播放控制栏 */}
-            <PlayerBar
-              playButtonRef={playButtonRef}
-              status={playbackStatus}
-              tempo={tempo}
-              isLoading={isLoading}
-              playDelay={playDelay}
-              isMetronomeActive={isMetronomeActive}
-              countdownValue={countdownValue}
-              showTempoControl={false}
-              noteFontSize={noteFontSize}
-              onNoteFontSizeChange={setNoteFontSize}
-              onPlay={play}
-              onPause={pause}
-              onStop={stop}
-              onTempoChange={setTempo}
-              onPlayDelayChange={setPlayDelay}
-            />
+        {/* 播放控制栏 */}
+        <PlayerBar
+          playButtonRef={playButtonRef}
+          status={playbackStatus}
+          isLoading={isLoading}
+          playDelay={playDelay}
+          isMetronomeActive={isMetronomeActive}
+          countdownValue={countdownValue}
+          noteFontSize={noteFontSize}
+          disabled={isEditorFocused}
+          onNoteFontSizeChange={setNoteFontSize}
+          onPlay={play}
+          onPause={pause}
+          onStop={stop}
+          onPlayDelayChange={setPlayDelay}
+        />
 
-            {/* 悬浮节拍器 */}
-            <Metronome tempo={tempo} status={playbackStatus} onTempoChange={setTempo} />
-          </div>
-        )}
+        {/* 悬浮节拍器 */}
+        <Metronome tempo={tempo} status={playbackStatus} onTempoChange={setTempo} />
       </main>
 
       {/* 设置模态框 */}
