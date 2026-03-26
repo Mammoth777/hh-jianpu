@@ -1,5 +1,6 @@
 import React from 'react';
 import type { PlaybackStatus } from '@hh-jianpu/core';
+import RunningCat from './RunningCat';
 
 const DELAY_BEATS = [0, 4, 8, 16] as const;
 const FONT_SIZES = [
@@ -84,9 +85,7 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
         }
       >
         {disabled || isLoading ? (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" className="animate-spin">
-            <circle cx="12" cy="12" r="10" strokeWidth="3" strokeDasharray="32" />
-          </svg>
+          <RunningCat size={24} />
         ) : isMetronomeActive && countdownValue > 0 ? (
           <span className="w-6 h-6 flex items-center justify-center text-lg font-bold leading-none">
             {countdownValue}
