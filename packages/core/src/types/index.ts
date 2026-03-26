@@ -128,6 +128,10 @@ export interface Measure {
   lyrics?: MeasureLyrics;
   /** 小节在源文本中的字节范围（不含两侧 | 线），供编辑器错误标注使用 */
   sourceRange?: { from: number; to: number };
+  /** 小节起始行号（从 1 开始），用于编辑器与预览区域滚动同步 */
+  sourceLine?: number;
+  /** 此小节前是否需要换行（由源文本中的换行决定） */
+  lineBreakBefore?: boolean;
 }
 
 /** 完整曲谱 AST */

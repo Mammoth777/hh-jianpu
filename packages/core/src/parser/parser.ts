@@ -217,29 +217,46 @@ function parseBody(tokens: Token[]): { measures: Measure[]; errors: ParseError[]
   );
   
   const bodyTokens = tokens.filter(
-    t => !['METADATA_KEY', 'METADATA_VALUE', 'NEWLINE', 'EOF', 'MELODY_MARKER', 'LYRICS_MARKER', 'LYRICS_TEXT'].includes(t.type)
+    t => !['METADATA_KEY', 'METADATA_VALUE', 'NEWLINE', 'EOF', 'MELODY_MARKER', 'LYRICS_MARKER', 'LYRICS_TEXT', 'FRONTMATTER_SEPARATOR'].includes(t.type)
   );
 
   // 追踪当前小节起始 offset（不含 | 线自身）
   let measureStartOffset = bodyTokens[0]?.offset ?? 0;
+  // 追踪当前小节起始行号
+  let measureStartLine = bodyTokens[0]?.line ?? 1;
+  // 追踪上一个已保存小节的行号，用于检测换行
+  let lastSavedMeasureLine = -1;
+  // 遇到 BARLINE 后等待下一个内容 token 来确定新小节的起始行号
+  let pendingNewMeasure = false;
   let i = 0;
   while (i < bodyTokens.length) {
     const token = bodyTokens[i];
+
+    // 遇到 BARLINE 后，用第一个内容 token 的行号作为新小节起始行号
+    if (pendingNewMeasure && token.type !== 'SLUR_START' && token.type !== 'SLUR_END') {
+      measureStartLine = token.line;
+      pendingNewMeasure = false;
+    }
 
     switch (token.type) {
       case 'BARLINE': {
         // 遇到小节线，保存当前小节
         if (currentNotes.length > 0) {
+          const lineBreakBefore = lastSavedMeasureLine !== -1 && measureStartLine !== lastSavedMeasureLine;
           measures.push({
             number: measureNumber,
             notes: currentNotes,
             sourceRange: { from: measureStartOffset, to: token.offset },
+            sourceLine: measureStartLine,
+            lineBreakBefore,
           });
+          lastSavedMeasureLine = measureStartLine;
           measureNumber++;
           currentNotes = [];
         }
         // 下一小节从 | 之后开始
         measureStartOffset = token.offset + token.value.length;
+        pendingNewMeasure = true;
         i++;
         break;
       }
@@ -421,10 +438,13 @@ function parseBody(tokens: Token[]): { measures: Measure[]; errors: ParseError[]
     const measureEnd = lastBodyToken
       ? lastBodyToken.offset + lastBodyToken.value.length
       : measureStartOffset;
+    const lineBreakBefore = lastSavedMeasureLine !== -1 && measureStartLine !== lastSavedMeasureLine;
     measures.push({
       number: measureNumber,
       notes: currentNotes,
       sourceRange: { from: measureStartOffset, to: measureEnd },
+      sourceLine: measureStartLine,
+      lineBreakBefore,
     });
   }
 

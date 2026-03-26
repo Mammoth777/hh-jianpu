@@ -57,14 +57,28 @@ export function createLayout(score: Score, config: Partial<LayoutConfig> = {}): 
   const allNotes: NotePosition[] = [];
   let globalNoteIndex = 0;
 
-  // 按行分组小节
-  const totalMeasures = score.measures.length;
-  const lineCount = Math.ceil(totalMeasures / cfg.measuresPerLine);
+  // 按行分组小节：优先使用源文本换行，同时受 measuresPerLine 上限约束
+  const lineGroups: Measure[][] = [];
+  let currentGroup: Measure[] = [];
 
-  for (let lineIdx = 0; lineIdx < lineCount; lineIdx++) {
-    const lineStartMeasure = lineIdx * cfg.measuresPerLine;
-    const lineEndMeasure = Math.min(lineStartMeasure + cfg.measuresPerLine, totalMeasures);
-    const lineMeasures = score.measures.slice(lineStartMeasure, lineEndMeasure);
+  for (let i = 0; i < score.measures.length; i++) {
+    const measure = score.measures[i];
+    const shouldBreak =
+      (measure.lineBreakBefore && currentGroup.length > 0) ||
+      currentGroup.length >= cfg.measuresPerLine;
+
+    if (shouldBreak) {
+      lineGroups.push(currentGroup);
+      currentGroup = [];
+    }
+    currentGroup.push(measure);
+  }
+  if (currentGroup.length > 0) {
+    lineGroups.push(currentGroup);
+  }
+
+  for (let lineIdx = 0; lineIdx < lineGroups.length; lineIdx++) {
+    const lineMeasures = lineGroups[lineIdx];
 
     const lineY = cfg.marginTop + lineIdx * (cfg.lineHeight + cfg.lineGap);
     const measureWidth = (cfg.width - cfg.marginLeft * 2) / cfg.measuresPerLine;
