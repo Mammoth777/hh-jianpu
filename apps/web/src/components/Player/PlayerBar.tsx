@@ -11,13 +11,12 @@ const FONT_SIZES = [
 interface PlayerBarProps {
   playButtonRef?: React.RefObject<HTMLButtonElement>;
   status: PlaybackStatus;
-  isLoading?: boolean;
   playDelay: number;
   isMetronomeActive?: boolean;
   countdownValue?: number;
   noteFontSize: number;
-  /** 编辑器聚焦时禁用控制条 */
-  disabled?: boolean;
+  /** 控制条是否折叠（编辑器未聚焦时） */
+  collapsed?: boolean;
   onNoteFontSizeChange: (size: number) => void;
   onPlay: () => void;
   onPause: () => void;
@@ -28,12 +27,11 @@ interface PlayerBarProps {
 const PlayerBar: React.FC<PlayerBarProps> = ({
   playButtonRef,
   status,
-  isLoading = false,
   playDelay,
   isMetronomeActive = false,
   countdownValue = 0,
   noteFontSize,
-  disabled = false,
+  collapsed = false,
   onNoteFontSizeChange,
   onPlay,
   onPause,
@@ -41,7 +39,7 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
   onPlayDelayChange,
 }) => {
   const handlePlayClick = () => {
-    if (disabled || isLoading) return;
+    if (collapsed) return;
     if (isMetronomeActive) {
       onPlay();
     } else if (status === "playing") {
@@ -51,35 +49,20 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
     }
   };
 
-  const isControlDisabled = disabled || isLoading;
-
-  const getDisabledClass = (baseClass: string) => {
-    if (isLoading) {
-      return `${baseClass} disabled:opacity-50 loading-cursor`;
-    }
-    return `${baseClass} disabled:opacity-50 disabled:cursor-not-allowed`;
-  };
-
   return (
     <div
-      className={`relative flex items-center justify-center gap-6 px-6 py-3 bg-white/80 backdrop-blur border-t border-barline transition-opacity ${disabled ? "opacity-90" : ""}`}
+      className={`relative flex items-center justify-center gap-6 px-6 py-3 bg-white/80 backdrop-blur border-t border-barline transition-all duration-300 ease-in-out ${
+        collapsed ? "max-h-0 py-0 border-0 overflow-hidden" : "max-h-14"
+      }`}
     >
-      {/* 磁带 loading 动画 */}
-      {(isLoading || disabled) && (
-        <div
-          className="absolute left-1/2 -translate-x-1/2 top-1/2 -translate-y-1/2 loader-outside"
-          aria-hidden="true"
-        >
-          <div className="loader" />
-        </div>
-      )}
-
       {/* 停止 */}
       <button
-        onClick={isControlDisabled ? undefined : onStop}
-        disabled={isControlDisabled}
-        className={getDisabledClass("p-2 rounded-lg hover:bg-gray-100 transition-colors text-ink")}
-        title={isLoading ? "加载中…" : disabled ? "点击编辑区域外启用控制" : "停止"}
+        onClick={collapsed ? undefined : onStop}
+        disabled={collapsed}
+        className={`p-2 rounded-lg hover:bg-gray-100 transition-colors text-ink ${
+          collapsed ? "opacity-0 pointer-events-none" : ""
+        }`}
+        title="停止"
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
           <rect x="4" y="4" width="12" height="12" rx="2" />
@@ -90,35 +73,17 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
       <button
         ref={playButtonRef}
         onClick={handlePlayClick}
-        disabled={isLoading || disabled}
-        className={`p-3 rounded-full text-white transition-colors shadow-md ${
+        disabled={collapsed}
+        className={`p-3 rounded-full text-white transition-all shadow-md ${
+          collapsed ? "opacity-0 pointer-events-none scale-75" : ""
+        } ${
           isMetronomeActive
             ? "bg-amber-500 hover:bg-amber-600"
             : "bg-highlight hover:bg-blue-700"
-        } ${getDisabledClass("")}`.trim()}
-        title={
-          disabled
-            ? "点击编辑区域外启用控制"
-            : isLoading
-              ? "加载中…"
-              : isMetronomeActive
-                ? "点击取消倒计时"
-                : status === "playing"
-                  ? "暂停"
-                  : "播放"
-        }
+        }`}
+        title={isMetronomeActive ? "点击取消倒计时" : status === "playing" ? "暂停" : "播放"}
       >
-        {disabled || isLoading ? (
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="currentColor"
-            className="animate-pulse"
-          >
-            <polygon points="7,4 20,12 7,20" />
-          </svg>
-        ) : isMetronomeActive && countdownValue > 0 ? (
+        {isMetronomeActive && countdownValue > 0 ? (
           <span className="w-6 h-6 flex items-center justify-center text-lg font-bold leading-none">
             {countdownValue}
           </span>
@@ -136,19 +101,21 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
 
       {/* 延迟设置 */}
       <div
-        className={`flex items-center gap-1.5 ${isControlDisabled ? "pointer-events-none" : ""}`}
+        className={`flex items-center gap-1.5 transition-all duration-300 ${
+          collapsed ? "opacity-0 pointer-events-none w-0" : ""
+        }`}
       >
         <span className="text-xs text-played select-none">延迟:</span>
         {DELAY_BEATS.map((beats) => (
           <button
             key={beats}
-            onClick={() => !isControlDisabled && onPlayDelayChange(beats)}
-            disabled={isControlDisabled}
+            onClick={() => !collapsed && onPlayDelayChange(beats)}
+            disabled={collapsed}
             className={`px-2 py-0.5 text-xs rounded transition-colors ${
               playDelay === beats
                 ? "bg-highlight text-white"
                 : "bg-gray-100 text-played hover:bg-gray-200"
-            } ${getDisabledClass("")}`.trim()}
+            }`}
           >
             {beats === 0 ? "无" : `${beats}拍`}
           </button>
@@ -157,18 +124,20 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
 
       {/* 字体大小 */}
       <div
-        className={`flex items-center gap-1 ${isControlDisabled ? "pointer-events-none" : ""}`}
+        className={`flex items-center gap-1 transition-all duration-300 ${
+          collapsed ? "opacity-0 pointer-events-none w-0" : ""
+        }`}
       >
         {FONT_SIZES.map(({ label, value }) => (
           <button
             key={value}
-            onClick={() => !isControlDisabled && onNoteFontSizeChange(value)}
-            disabled={isControlDisabled}
+            onClick={() => !collapsed && onNoteFontSizeChange(value)}
+            disabled={collapsed}
             className={`px-2 py-0.5 text-xs rounded transition-colors ${
               noteFontSize === value
                 ? "bg-highlight text-white"
                 : "bg-gray-100 text-played hover:bg-gray-200"
-            } ${getDisabledClass("")}`.trim()}
+            }`}
           >
             {label}
           </button>

@@ -197,12 +197,11 @@ const EditorPage: React.FC = () => {
         <PlayerBar
           playButtonRef={playButtonRef}
           status={playbackStatus}
-          isLoading={isLoading}
           playDelay={playDelay}
           isMetronomeActive={isMetronomeActive}
           countdownValue={countdownValue}
           noteFontSize={noteFontSize}
-          disabled={isEditorFocused}
+          collapsed={!isEditorFocused}
           onNoteFontSizeChange={setNoteFontSize}
           onPlay={play}
           onPause={pause}
