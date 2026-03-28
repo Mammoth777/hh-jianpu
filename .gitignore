@@ -6,3 +6,4 @@ dist/
 **/.venv
 *.tsbuildinfo
 .worktrees/
+screenshots/
