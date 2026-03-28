@@ -29,38 +29,61 @@ body {
 }
 
 .score-note:hover {
-  fill: theme('colors.highlight');
+  fill: theme("colors.highlight");
 }
 
 .score-note--active {
-  fill: theme('colors.highlight');
+  fill: theme("colors.highlight");
   font-weight: 600;
 }
 
 .score-note--played {
-  fill: theme('colors.played');
+  fill: theme("colors.played");
 }
 
 /* ── 磁带 loading 动画 ──────────────────────────────────── */
 
 @keyframes l3 {
-  25% { background-position: 0 0, 100% 100%, 100% calc(100% - 5px); }
-  50% { background-position: 0 100%, 100% 100%, 0 calc(100% - 5px); }
-  75% { background-position: 0 100%, 100% 0, 100% 5px; }
+  25% {
+    background-position:
+      0 0,
+      100% 100%,
+      100% calc(100% - 5px);
+  }
+  50% {
+    background-position:
+      0 100%,
+      100% 100%,
+      0 calc(100% - 5px);
+  }
+  75% {
+    background-position:
+      0 100%,
+      100% 0,
+      100% 5px;
+  }
+}
+
+.loader-outside {
+  width: 600px;
 }
 
 .loader {
-  width: 60%;
-  height: 36px;
-  border: 3px solid theme('colors.barline');
+  height: 56px;
+  border: 3px solid theme("colors.barline");
   padding: 0 6px;
   box-sizing: border-box;
   background:
     linear-gradient(#fff 0 0) 0 0/6px 14px,
     linear-gradient(#fff 0 0) 100% 0/6px 14px,
     radial-gradient(farthest-side, #fff 90%, #0000) 0 3px/6px 6px content-box,
-    theme('colors.barline');
+    theme("colors.barline");
   background-repeat: no-repeat;
-  animation: l3 2s infinite linear;
+  animation: l3 5s infinite linear;
   opacity: 0.9;
+}
+
+/* loading 时保持默认光标 */
+.loading-cursor {
+  cursor: default !important;
 }

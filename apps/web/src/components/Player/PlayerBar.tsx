@@ -53,6 +53,13 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
 
   const isControlDisabled = disabled || isLoading;
 
+  const getDisabledClass = (baseClass: string) => {
+    if (isLoading) {
+      return `${baseClass} disabled:opacity-50 loading-cursor`;
+    }
+    return `${baseClass} disabled:opacity-50 disabled:cursor-not-allowed`;
+  };
+
   return (
     <div
       className={`relative flex items-center justify-center gap-6 px-6 py-3 bg-white/80 backdrop-blur border-t border-barline transition-opacity ${disabled ? "opacity-90" : ""}`}
@@ -71,7 +78,7 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
       <button
         onClick={isControlDisabled ? undefined : onStop}
         disabled={isControlDisabled}
-        className="p-2 rounded-lg hover:bg-gray-100 transition-colors text-ink disabled:opacity-50 disabled:cursor-not-allowed"
+        className={getDisabledClass("p-2 rounded-lg hover:bg-gray-100 transition-colors text-ink")}
         title={isLoading ? "加载中…" : disabled ? "点击编辑区域外启用控制" : "停止"}
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
@@ -84,11 +91,11 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
         ref={playButtonRef}
         onClick={handlePlayClick}
         disabled={isLoading || disabled}
-        className={`p-3 rounded-full text-white transition-colors shadow-md disabled:opacity-50 disabled:cursor-not-allowed ${
+        className={`p-3 rounded-full text-white transition-colors shadow-md ${
           isMetronomeActive
             ? "bg-amber-500 hover:bg-amber-600"
             : "bg-highlight hover:bg-blue-700"
-        }`}
+        } ${getDisabledClass("")}`.trim()}
         title={
           disabled
             ? "点击编辑区域外启用控制"
@@ -137,11 +144,11 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
             key={beats}
             onClick={() => !isControlDisabled && onPlayDelayChange(beats)}
             disabled={isControlDisabled}
-            className={`px-2 py-0.5 text-xs rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`px-2 py-0.5 text-xs rounded transition-colors ${
               playDelay === beats
                 ? "bg-highlight text-white"
                 : "bg-gray-100 text-played hover:bg-gray-200"
-            }`}
+            } ${getDisabledClass("")}`.trim()}
           >
             {beats === 0 ? "无" : `${beats}拍`}
           </button>
@@ -157,11 +164,11 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
             key={value}
             onClick={() => !isControlDisabled && onNoteFontSizeChange(value)}
             disabled={isControlDisabled}
-            className={`px-2 py-0.5 text-xs rounded transition-colors disabled:opacity-50 disabled:cursor-not-allowed ${
+            className={`px-2 py-0.5 text-xs rounded transition-colors ${
               noteFontSize === value
                 ? "bg-highlight text-white"
                 : "bg-gray-100 text-played hover:bg-gray-200"
-            }`}
+            } ${getDisabledClass("")}`.trim()}
           >
             {label}
           </button>
