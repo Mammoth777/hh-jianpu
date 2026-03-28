@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "skills": {
+    "svg-animations": {
+      "source": "supermemoryai/skills",
+      "sourceType": "github",
+      "computedHash": "9be4b3e0afe9d3cbb1bcf238f8504f9a23552f742350fbef9483070112ac1977"
+    }
+  }
+}

@@ -67,4 +67,9 @@ pnpm lint         # Lint 检查
 
 ---
 
+## Avoid
+
+- 不要主动提交commit, 只有在用户要求时才会提交
+
+
 > **以上是快速参考。详细规范请阅读 `.agent/instructions.md`。**
