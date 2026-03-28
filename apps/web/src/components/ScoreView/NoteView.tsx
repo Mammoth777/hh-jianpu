@@ -205,9 +205,9 @@ const NoteView: React.FC<NoteViewProps> = ({ note, x, y, index, isActive, isPlay
           {note.duration.base >= 16 && (
             <line
               x1={x - 8}
-              y1={y + 16}
+              y1={y + 20}
               x2={x + 8}
-              y2={y + 16}
+              y2={y + 20}
               stroke={fillColor}
               strokeWidth={1.5}
             />
