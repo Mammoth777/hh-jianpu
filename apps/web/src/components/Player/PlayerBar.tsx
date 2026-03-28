@@ -46,7 +46,6 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
 
   const handlePlayClick = () => {
     if (isCollapsed) return;
-    if (collapsed) return;
     if (isMetronomeActive) {
       onPlay();
     } else if (status === "playing") {
@@ -58,39 +57,31 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
 
   return (
     <div
-      className={`relative flex items-center justify-center gap-6 px-6 py-3 bg-white/80 backdrop-blur border-t border-barline transition-all duration-300 ease-in-out ${
+      className={`relative flex items-center justify-center gap-4 px-4 py-2 bg-white/80 backdrop-blur border-t border-barline transition-all duration-300 ease-in-out ${
         isCollapsed ? "max-h-0 py-0 border-0 overflow-hidden" : "max-h-14"
       }`}
     >
-      {/* Pin 按钮 */}
+      {/* Pin 按钮 - 使用 emoji */}
       <button
         onClick={() => setIsPinned(!isPinned)}
-        className={`p-2 rounded-lg transition-colors ${
-          isCollapsed ? "opacity-0 pointer-events-none" : ""
-        } ${
-          isPinned ? "text-highlight bg-highlight/10" : "text-played hover:bg-gray-100"
-        }`}
+        className={`text-xl transition-opacity duration-200 ${
+          isCollapsed ? "opacity-0 pointer-events-none w-0" : ""
+        } ${isPinned ? "opacity-100" : "opacity-60 hover:opacity-100"}`}
         title={isPinned ? "取消固定" : "固定控制条"}
       >
-        <svg width="18" height="18" viewBox="0 0 18 18" fill="currentColor">
-          {isPinned ? (
-            <path d="M9 1L11 7H17L12 11L14 17L9 13L4 17L6 11L1 7H7L9 1Z" />
-          ) : (
-            <path d="M9 2L10.5 6H14L11 8.5L12.5 13L9 10.5L5.5 13L7 8.5L4 6H7.5L9 2Z" />
-          )}
-        </svg>
+        📌
       </button>
 
       {/* 停止 */}
       <button
         onClick={isCollapsed ? undefined : onStop}
         disabled={isCollapsed}
-        className={`p-2 rounded-lg hover:bg-gray-100 transition-colors text-ink ${
-          isCollapsed ? "opacity-0 pointer-events-none" : ""
+        className={`p-2 rounded-lg hover:bg-gray-100 text-ink transition-opacity duration-200 ${
+          isCollapsed ? "opacity-0 pointer-events-none w-0" : ""
         }`}
         title="停止"
       >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="currentColor">
+        <svg width="18" height="18" viewBox="0 0 20 20" fill="currentColor">
           <rect x="4" y="4" width="12" height="12" rx="2" />
         </svg>
       </button>
@@ -100,8 +91,8 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
         ref={playButtonRef}
         onClick={handlePlayClick}
         disabled={isCollapsed}
-        className={`p-3 rounded-full text-white transition-all shadow-md ${
-          isCollapsed ? "opacity-0 pointer-events-none scale-75" : ""
+        className={`p-2.5 rounded-full text-white shadow-md transition-colors ${
+          isCollapsed ? "opacity-0 pointer-events-none w-0" : ""
         } ${
           isMetronomeActive
             ? "bg-amber-500 hover:bg-amber-600"
@@ -110,16 +101,16 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
         title={isMetronomeActive ? "点击取消倒计时" : status === "playing" ? "暂停" : "播放"}
       >
         {isMetronomeActive && countdownValue > 0 ? (
-          <span className="w-6 h-6 flex items-center justify-center text-lg font-bold leading-none">
+          <span className="w-5 h-5 flex items-center justify-center text-sm font-bold leading-none">
             {countdownValue}
           </span>
         ) : status === "playing" ? (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <rect x="6" y="5" width="4" height="14" rx="1" />
             <rect x="14" y="5" width="4" height="14" rx="1" />
           </svg>
         ) : (
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor">
             <polygon points="7,4 20,12 7,20" />
           </svg>
         )}
@@ -127,8 +118,8 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
 
       {/* 延迟设置 */}
       <div
-        className={`flex items-center gap-1.5 transition-all duration-300 ${
-          isCollapsed ? "opacity-0 pointer-events-none w-0" : ""
+        className={`flex items-center gap-1 transition-opacity duration-200 ${
+          isCollapsed ? "opacity-0 pointer-events-none" : ""
         }`}
       >
         <span className="text-xs text-played select-none">延迟:</span>
@@ -137,7 +128,7 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
             key={beats}
             onClick={() => !isCollapsed && onPlayDelayChange(beats)}
             disabled={isCollapsed}
-            className={`px-2 py-0.5 text-xs rounded transition-colors ${
+            className={`px-1.5 py-0.5 text-xs rounded transition-colors ${
               playDelay === beats
                 ? "bg-highlight text-white"
                 : "bg-gray-100 text-played hover:bg-gray-200"
@@ -150,8 +141,8 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
 
       {/* 字体大小 */}
       <div
-        className={`flex items-center gap-1 transition-all duration-300 ${
-          isCollapsed ? "opacity-0 pointer-events-none w-0" : ""
+        className={`flex items-center gap-1 transition-opacity duration-200 ${
+          isCollapsed ? "opacity-0 pointer-events-none" : ""
         }`}
       >
         {FONT_SIZES.map(({ label, value }) => (
@@ -159,7 +150,7 @@ const PlayerBar: React.FC<PlayerBarProps> = ({
             key={value}
             onClick={() => !isCollapsed && onNoteFontSizeChange(value)}
             disabled={isCollapsed}
-            className={`px-2 py-0.5 text-xs rounded transition-colors ${
+            className={`px-1.5 py-0.5 text-xs rounded transition-colors ${
               noteFontSize === value
                 ? "bg-highlight text-white"
                 : "bg-gray-100 text-played hover:bg-gray-200"
