@@ -50,7 +50,7 @@ body {
 }
 
 .loader {
-  width: 70px;
+  width: 60%;
   height: 36px;
   border: 3px solid theme('colors.barline');
   padding: 0 6px;
