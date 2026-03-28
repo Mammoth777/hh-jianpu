@@ -72,6 +72,30 @@ const NoteView: React.FC<NoteViewProps> = ({ note, x, y, index, isActive, isPlay
   // 波音标记
   const hasTrill = note.type === 'note' && note.trillType;
 
+  // 根据减时线数量计算低音点起始位置，让低音点始终在最后一条减时线下方
+  // 歌词基线在 noteY + 46（lineY + 76），汉字顶部约 noteY + 33，确保低音点不与歌词重叠
+  let baseOctaveYOffset = 16; // 默认无减时线时在音符下方 16px
+  if (note.type === 'note' && !isGrace) {
+    if (beamGroup !== undefined) {
+      // 在连音组中，beam 线由 MeasureView 统一渲染：主 beam y+12，次级 beam y+16，三级 beam y+20
+      // 低音点放在实际最后一条 beam 下方 8px，避免过度下移导致与歌词重叠
+      if (note.duration.base >= 32) {
+        baseOctaveYOffset = 20 + 8; // 三级 beam y+20，点在 y+28
+      } else if (note.duration.base >= 16) {
+        baseOctaveYOffset = 16 + 8; // 次级 beam y+16，点在 y+24
+      } else if (note.duration.base >= 8) {
+        baseOctaveYOffset = 12 + 8; // 主 beam y+12，点在 y+20
+      }
+    } else {
+      // 独立减时线：单条在 y+12，两条最后一条在 y+24
+      if (note.duration.base >= 16) {
+        baseOctaveYOffset = 24 + 8; // = 32
+      } else if (note.duration.base >= 8) {
+        baseOctaveYOffset = 12 + 8; // = 20
+      }
+    }
+  }
+
   return (
     <g
       className="score-note"
@@ -163,14 +187,14 @@ const NoteView: React.FC<NoteViewProps> = ({ note, x, y, index, isActive, isPlay
       {note.type === 'note' && note.octave > 0 && (
         <>
           {Array.from({ length: note.octave }).map((_, i) => (
-            <circle
-              key={`up-${i}`}
-              cx={x + graceOffsetX}
-              cy={y + graceOffsetY - (isGrace ? 12 : 18) - i * 6}
-              r={isGrace ? 1.5 : 2}
-              fill={fillColor}
-              opacity={isGrace ? 0.7 : 1}
-            />
+             <circle
+               key={`up-${i}`}
+               cx={x + graceOffsetX}
+               cy={y + graceOffsetY - (isGrace ? 12 : 18) - i * 4}
+               r={isGrace ? 1.5 : 2}
+               fill={fillColor}
+               opacity={isGrace ? 0.7 : 1}
+             />
           ))}
         </>
       )}
@@ -182,7 +206,7 @@ const NoteView: React.FC<NoteViewProps> = ({ note, x, y, index, isActive, isPlay
             <circle
               key={`down-${i}`}
               cx={x + graceOffsetX}
-              cy={y + graceOffsetY + (isGrace ? 12 : 16) + i * 6}
+              cy={y + graceOffsetY + (isGrace ? 12 : baseOctaveYOffset) + i * 4}
               r={isGrace ? 1.5 : 2}
               fill={fillColor}
               opacity={isGrace ? 0.7 : 1}
@@ -205,9 +229,9 @@ const NoteView: React.FC<NoteViewProps> = ({ note, x, y, index, isActive, isPlay
           {note.duration.base >= 16 && (
             <line
               x1={x - 8}
-              y1={y + 20}
+              y1={y + 24}
               x2={x + 8}
-              y2={y + 20}
+              y2={y + 24}
               stroke={fillColor}
               strokeWidth={1.5}
             />

@@ -49,11 +49,24 @@ export function calculateNoteBoundingBox(
     if (note.octave > 0) {
       // 高八度点在上方
       const dotCount = note.octave;
-      top = Math.min(top, y - (fontSize * 0.7) - (dotCount - 1) * 6);
+      top = Math.min(top, y - (fontSize * 0.7) - (dotCount - 1) * 4);
     } else {
-      // 低八度点在下方
+      // 低八度点在下方，最后一条减时线下方 4px 开始
       const dotCount = Math.abs(note.octave);
-      bottom = Math.max(bottom, y + (fontSize * 0.7) + (dotCount - 1) * 6);
+      let baseY = y + (fontSize * 0.7);
+      if (note.duration.base >= 16) {
+        // 两条减时线最后一条在 y+24，低音点从 y+32 开始（减时线下方 8px）
+        // 歌词在 y+40，最后一个低音点最大在 y+32+(n-1)*4 = y+36，保证 4px 间距
+        // 两个低音点 y+36，歌词 y+40，间距 4px
+        baseY = 32 + (dotCount - 1) * 4;
+      } else if (note.duration.base >= 8) {
+        // 一条减时线在 y+12，低音点从 y+20 开始（减时线下方 8px）
+        baseY = 20 + (dotCount - 1) * 4;
+      } else {
+        // 无减时线
+        baseY = (fontSize * 0.7) + (dotCount - 1) * 4;
+      }
+      bottom = Math.max(bottom, y + baseY);
     }
   }
   
@@ -62,7 +75,8 @@ export function calculateNoteBoundingBox(
     const beamWidth = calculateSymbolWidth('beamLine', fontSize);
     right = Math.max(right, x + beamWidth / 2);
     left = Math.min(left, x - beamWidth / 2);
-    bottom = Math.max(bottom, y + 12); // 减时线在下方
+    const beamsCount = note.duration.base >= 16 ? 2 : 1;
+    bottom = Math.max(bottom, y + 12 * beamsCount); // 减时线在下方
   }
   
   // 处理波音标记
