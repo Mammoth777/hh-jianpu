@@ -206,6 +206,32 @@ export interface NotePosition {
   slurGroup?: number;
 }
 
+/** 边界框 */
+export interface BoundingBox {
+  /** 左边界 */
+  left: number;
+  /** 右边界 */
+  right: number;
+  /** 上边界 */
+  top: number;
+  /** 下边界 */
+  bottom: number;
+  /** 宽度 */
+  width: number;
+  /** 高度 */
+  height: number;
+}
+
+/** 音符边界框 */
+export interface NoteBoundingBox {
+  /** 音符索引 */
+  noteIndex: number;
+  /** 横向边界框（包括倚音） */
+  horizontal: BoundingBox;
+  /** 纵向边界框（包括所有符号） */
+  vertical: BoundingBox;
+}
+
 /** 歌词渲染位置 */
 export interface LyricsPosition {
   /** 歌词文字 */

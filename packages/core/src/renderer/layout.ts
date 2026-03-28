@@ -12,6 +12,7 @@ import type {
   LyricsPosition,
   Measure,
 } from '../types/index.js';
+import { calculateDynamicSpacing, calculateNotePositions } from './dynamic-spacing.js';
 
 /** 布局配置 */
 export interface LayoutConfig {
@@ -21,6 +22,8 @@ export interface LayoutConfig {
   measuresPerLine: number;
   /** 音符间距（px） */
   noteSpacing: number;
+  /** 音符字号（px） */
+  noteFontSize: number;
   /** 行高（px） */
   lineHeight: number;
   /** 行间距（px） */
@@ -40,6 +43,7 @@ export const DEFAULT_LAYOUT_CONFIG: LayoutConfig = {
   width: 800,
   measuresPerLine: 4,
   noteSpacing: 40,
+  noteFontSize: 18,
   lineHeight: 60,
   lineGap: 30,
   marginLeft: 40,
@@ -90,35 +94,18 @@ export function createLayout(score: Score, config: Partial<LayoutConfig> = {}): 
       const measureX = cfg.marginLeft + mIdx * measureWidth;
       const notePositions: NotePosition[] = [];
 
-      const noteCount = measure.notes.length;
-      const spacing = noteCount > 0 ? measureWidth / (noteCount + 1) : measureWidth;
+      // 使用动态间距计算
+      const noteSpacing = calculateDynamicSpacing(measure.notes, cfg.noteFontSize, measureWidth * 0.8);
+      const positions = calculateNotePositions(measure.notes, cfg.noteFontSize, measureX + noteSpacing / 2, noteSpacing);
 
       for (let nIdx = 0; nIdx < measure.notes.length; nIdx++) {
         const note = measure.notes[nIdx];
-        const isGrace = note.type === 'note' && note.isGrace;
-        
-        // 倚音使用下一个音符的位置，主音符正常布局
-        let noteX: number;
-        if (isGrace) {
-          // 找到下一个非倚音的音符位置
-          let nextNonGraceIdx = nIdx + 1;
-          while (nextNonGraceIdx < measure.notes.length) {
-            const nextNote = measure.notes[nextNonGraceIdx];
-            if (!(nextNote.type === 'note' && nextNote.isGrace)) {
-              break;
-            }
-            nextNonGraceIdx++;
-          }
-          noteX = measureX + spacing * (nextNonGraceIdx + 1);
-        } else {
-          noteX = measureX + spacing * (nIdx + 1);
-        }
-        
+        const { x, y } = positions[nIdx];
         const noteY = lineY + cfg.lineHeight / 2;
-
+        
         const notePos: NotePosition = {
           index: globalNoteIndex,
-          x: noteX,
+          x: x,
           y: noteY,
           note,
           measureNumber: measure.number,
