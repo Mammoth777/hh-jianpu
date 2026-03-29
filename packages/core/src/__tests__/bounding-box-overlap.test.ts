@@ -39,7 +39,7 @@ describe('BoundingBox Overlap Check', () => {
       type: 'note',
       pitch: 5,
       octave: -2, // 两个低八度点
-      duration: { base: 32, dots: 0 }, // 三十二分音符，三条减时线
+      duration: { base: 32 as 16, dots: 0 }, // 三十二分音符，三条减时线（类型断言：32超出BaseDuration范围但用于测试边界）
       dot: false,
     };
     

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { createLayout } from '../renderer/layout.js';
-import { Score, Metadata } from '../types/index.js';
+import { Score, Metadata, Measure } from '../types/index.js';
 
 describe('Dynamic Layout Performance', () => {
   it('should handle large scores efficiently', () => {
@@ -11,7 +11,7 @@ describe('Dynamic Layout Performance', () => {
     };
     
     // 创建一个大型乐谱
-    const measures = [];
+    const measures: Measure[] = [];
     for (let i = 0; i < 100; i++) {
       measures.push({
         number: i + 1,
@@ -19,7 +19,7 @@ describe('Dynamic Layout Performance', () => {
           type: 'note' as const,
           pitch: (j % 7) + 1,
           octave: Math.floor(j / 4) - 1,
-          duration: { base: 4, dots: 0 },
+          duration: { base: 4 as const, dots: 0 },
           dot: false,
         })),
       });

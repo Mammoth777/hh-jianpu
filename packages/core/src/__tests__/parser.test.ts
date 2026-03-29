@@ -1236,14 +1236,13 @@ describe('Beam Groups', () => {
     const result = parse(source);
     const notes = result.score!.measures[0].notes;
 
-    // #2/ 和 4/ 相邻无空格，应同一组
-    if (notes[0].type === 'note' && notes[1].type === 'note') {
+    if (notes[0].type === 'note' && notes[1].type === 'note' &&
+        notes[2].type === 'note' && notes[3].type === 'note') {
+      // #2/ 和 4/ 相邻无空格，应同一组
       expect(notes[0].beamGroup).toBeDefined();
       expect(notes[1].beamGroup).toBe(notes[0].beamGroup);
-    }
 
-    // #6/ 和 1/ 相邻无空格，应同一组，但与 #2/4/ 的组不同
-    if (notes[2].type === 'note' && notes[3].type === 'note') {
+      // #6/ 和 1/ 相邻无空格，应同一组，但与 #2/4/ 的组不同
       expect(notes[2].beamGroup).toBeDefined();
       expect(notes[3].beamGroup).toBe(notes[2].beamGroup);
       // 关键：#6/ 因前面有空格，应与 #2/4/ 是不同的 beam 组

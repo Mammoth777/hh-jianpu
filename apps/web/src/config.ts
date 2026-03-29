@@ -11,5 +11,5 @@ export const AUTO_SAVE_DELAY_MS = 1000;
 /**
  * 帮助页面版本信息
  */
-export const HELP_PAGE_VERSION = 'v0.6.0';
-export const HELP_PAGE_UPDATED_DATE = '2026年03月26日';
+export const HELP_PAGE_VERSION = 'v0.6.2';
+export const HELP_PAGE_UPDATED_DATE = '2026年03月29日';
