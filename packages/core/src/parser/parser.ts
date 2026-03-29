@@ -331,8 +331,25 @@ function parseBody(tokens: Token[]): { measures: Measure[]; errors: ParseError[]
       case 'NOTE': {
         const noteResult = parseNote(bodyTokens, i);
         const note = noteResult.note;
-        // 记录空格信息
-        note.hasSpaceBefore = bodyTokens[i]?.hasSpaceBefore || false;
+        // 记录空格信息：需要向前回溯前置修饰符（#、b、八度标记），
+        // 空格可能被标记在修饰符 token 上（如 " #6" 中，空格记在 SHARP 上而非 NOTE 上）
+        let noteHasSpaceBefore = bodyTokens[i]?.hasSpaceBefore || false;
+        if (!noteHasSpaceBefore) {
+          let checkBack = i - 1;
+          while (checkBack >= 0) {
+            const pt = bodyTokens[checkBack];
+            if (pt.type === 'SHARP' || pt.type === 'FLAT' || pt.type === 'OCTAVE_UP' || pt.type === 'OCTAVE_DOWN') {
+              if (pt.hasSpaceBefore) {
+                noteHasSpaceBefore = true;
+                break;
+              }
+              checkBack--;
+            } else {
+              break;
+            }
+          }
+        }
+        note.hasSpaceBefore = noteHasSpaceBefore;
         
         // 检查音符前是否有波音标记
         let trillCount = 0;

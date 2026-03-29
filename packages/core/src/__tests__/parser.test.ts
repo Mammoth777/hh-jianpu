@@ -1220,6 +1220,36 @@ describe('Beam Groups', () => {
       expect(notes[1].beamGroup).toBe(notes[0].beamGroup);
     }
   });
+
+  it('should break beam group when sharp-prefixed note has space before it', () => {
+    // 回归测试：" #2/4/ #6/" 中，#6/ 前有空格，不应与 #2/4/ 连成同一 beam 组
+    // Bug: 空格信息被记录在 SHARP token 上，NOTE token 的 hasSpaceBefore 为 false，
+    //      导致 #6 被错误地认为与前面无间距而连成一组
+    const source = `---
+调号：C
+拍号：4/4
+速度：120
+---
+
+#2/4/ #6/1/ |`;
+
+    const result = parse(source);
+    const notes = result.score!.measures[0].notes;
+
+    // #2/ 和 4/ 相邻无空格，应同一组
+    if (notes[0].type === 'note' && notes[1].type === 'note') {
+      expect(notes[0].beamGroup).toBeDefined();
+      expect(notes[1].beamGroup).toBe(notes[0].beamGroup);
+    }
+
+    // #6/ 和 1/ 相邻无空格，应同一组，但与 #2/4/ 的组不同
+    if (notes[2].type === 'note' && notes[3].type === 'note') {
+      expect(notes[2].beamGroup).toBeDefined();
+      expect(notes[3].beamGroup).toBe(notes[2].beamGroup);
+      // 关键：#6/ 因前面有空格，应与 #2/4/ 是不同的 beam 组
+      expect(notes[2].beamGroup).not.toBe(notes[0].beamGroup);
+    }
+  });
 });
 
 // ============================================================
