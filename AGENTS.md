@@ -1,8 +1,8 @@
 # AGENTS.md - Agent Coding Guidelines for hh-jianpu
 
-> **本项目使用多 Agent 协作架构。** 完整项目指令、技能和任务管理均在 `.agent/` 目录中。
+> **本项目使用多 Agent 协作架构。** 完整项目指令、技能和任务管理均在 `.agents/` 目录中。
 > 
-> 请在开始工作前阅读 **`.agent/instructions.md`** 获取完整规范。
+> 请在开始工作前阅读 **`.agents/instructions.md`** 获取完整规范。
 
 ---
 
@@ -10,19 +10,19 @@
 
 | 资源 | 位置 | 说明 |
 |------|------|------|
-| **完整项目指令** | `.agent/instructions.md` | 代码风格、架构、测试等所有规范 |
-| **技能库** | `.agent/skills/` | bug-fix, user-feedback, release, clear-todo |
+| **完整项目指令** | `.agents/instructions.md` | 代码风格、架构、测试等所有规范 |
+| **技能库** | `.agents/skills/` | bug-fix, user-feedback, release, clear-todo |
 | **待办清单** | `TODO.md` | 随手记任务，说"清空 todo"时执行 |
-| **经验库** | `.agent/learnings/` | 错误、经验、功能请求记录 |
-| **架构说明** | `.agent/README.md` | 协作架构总览 |
+| **经验库** | `.agents/learnings/` | 错误、经验、功能请求记录 |
+| **架构说明** | `.agents/README.md` | 协作架构总览 |
 
 ---
 
 ## 每次会话必读
 
-1. **阅读指令**: `.agent/instructions.md`
+1. **阅读指令**: `.agents/instructions.md`
 2. **检查待办**: `TODO.md` — 是否有待办事项
-3. **回顾经验**: `.agent/learnings/` — 是否有相关历史经验
+3. **回顾经验**: `.agents/learnings/` — 是否有相关历史经验
 
 ---
 
@@ -61,9 +61,9 @@ pnpm lint         # Lint 检查
 
 | 触发词 | Skill | 位置 |
 |--------|-------|------|
-| `bug:` | 验证→修复→回归 | `.agent/skills/bug-fix/SKILL.md` |
-| `feedback:` | 理解→评估→实施→验证 | `.agent/skills/user-feedback/SKILL.md` |
-| `清空todo`/`clear todo` | 分类→逐个完成 | `.agent/skills/clear-todo/SKILL.md` |
+| `bug:` | 验证→修复→回归 | `.agents/skills/bug-fix/SKILL.md` |
+| `feedback:` | 理解→评估→实施→验证 | `.agents/skills/user-feedback/SKILL.md` |
+| `清空todo`/`clear todo` | 分类→逐个完成 | `.agents/skills/clear-todo/SKILL.md` |
 
 ---
 
@@ -72,4 +72,4 @@ pnpm lint         # Lint 检查
 - 不要主动提交commit, 只有在用户要求时才会提交
 
 
-> **以上是快速参考。详细规范请阅读 `.agent/instructions.md`。**
+> **以上是快速参考。详细规范请阅读 `.agents/instructions.md`。**
